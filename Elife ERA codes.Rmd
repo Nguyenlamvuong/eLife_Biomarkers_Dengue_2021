@@ -1,0 +1,3063 @@
+---
+title: "Combination of inflammatory and vascular markers in the febrile phase of dengue is associated with more severe outcomes"
+author: "Nguyen Lam Vuong"
+date: "29-Jul-2021"
+output: github_document
+---
+
+```{r load packages, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+library(gtsummary) # need to install package 'flextable'
+library(rms)
+library(MuMIn) # for best subset selection
+library(facetscales) # need to install package 'facetscales' from devtools::install_github("zeehio/facetscales")
+source("Elife ERA functions.R") # to include my functions
+options(gtsummary.tbl_summary.percent_fun = function(x) sprintf(x * 100, fmt='%1.0f')) # to report percentages without decimal
+options(knitr.kable.NA = '') # to set NA to '' in kable results
+theme_set(theme_bw()) # I love black & white theme
+options(na.action = "na.fail") # for 'dredge' function [MuMIn]
+```
+
+```{r load data, message=FALSE, warning=FALSE, include=FALSE}
+# Full data
+dat0 <- read_csv("Dengue_Biomarkers_data_27Jul2021.csv") %>%
+  mutate(group2 = factor(sev.or.inte, levels=c(0,1), labels=c("Uncomplicated dengue","Severe/moderate dengue")),
+         Country = as.factor(Country),
+         Serotype = as.factor(Serotype),
+         Serology = factor(Serology, levels = c("Probable primary", "Probable secondary", "Inconclusive")),
+         WHO2009 = factor(WHO2009, levels = c("Mild dengue", "Dengue with warning signs", "Severe dengue", "Unknown")))
+
+# Data at enrollment (for Table 1 & Appendix 4-table 1)
+dat <- dat0 %>% filter(Time == "Enrolment")
+
+# Data at enrollment for models
+## with inverse probability weights (IPW) for inclusion probability by countries (for the analysis of secondary outcomes)
+## transform the biomarker's levels to log-2 and viremia to log-10
+## set all biomarker's levels under the limit of detection (u...=1) to the limit of detection
+dat1 <- dat %>%
+  mutate(age15 = factor(age15, levels=c("No","Yes"), labels=c("Under 15","15 and above")),
+         Serotype = ifelse(Serotype=="Unknown", NA, as.character(Serotype)),
+         Serotype = ifelse(Serotype=="DENV-1", 1, 2),
+         Serotype2 = Serotype, # for getting results for Appendix5-tables 1, 2
+         Serotype = factor(Serotype, levels=c(1,2), labels=c("DENV-1","Others")), # set Serotype to DENV-1 and others
+         ipw = ifelse(sev.or.inte==1, 1,
+                      ifelse(Country=="Vietnam", (1505-204)/436,
+                             ifelse(Country=="Malaysia", (259-29)/58,
+                                    ifelse(Country=="El Salvador", (306-18)/23,
+                                           ifelse(Country=="Cambodia", (302-30)/39, NA))))),
+         ipwsd = ipw * 837/2372,
+         VCAM = ifelse(uVCAM==1, log2(0.028), log2(VCAM1)),
+         SDC = log2(SDC1),
+         Ang = ifelse(uAng==1, log2(17.1), log2(Ang2)),
+         IL8 = ifelse(uIL8==1, log2(1.8), log2(IL8)),
+         IP10 = ifelse(uIP10==1, log2(1.18), log2(IP10)),
+         IL1RA = ifelse(uIL1RA==1, log2(18), log2(IL1RA)),
+         CD163 = log2(CD163),
+         TREM = ifelse(uTREM==1, log2(10.65), log2(TREM1)),
+         Fer = log2(Fer),
+         CRP = log2(CRP), 
+         Vir = log10(Viremia)) %>%
+  select(Code, Age, age15, Serotype, Serotype2, sev.or.inte, sev.only, sev.or.ws, hospital, VCAM, SDC, Ang, IL8, IP10, IL1RA, CD163, TREM, Fer, CRP, Vir, uVCAM, uAng, uIL8, uIP10, uCD163, uTREM, uVir, ipw, ipwsd)
+
+dat1c <- dat1 %>% filter(age15 == "Under 15") ## Data for children
+dat1a <- dat1 %>% filter(age15 == "15 and above") ## Data for adults
+
+# Set references for calculating the ORs and 95% CIs
+ref0 <- c(median(dat1$VCAM), median(dat1$SDC), median(dat1$Ang), median(dat1$IL8), median(dat1$IP10), median(dat1$IL1RA), median(dat1$CD163), median(dat1$TREM), median(dat1$Fer), median(dat1$CRP))
+
+# Create data for plotting biomarkers (for Figure 2 & Appendix 4-figure 1)
+## Enrollment
+tmp1 <- dat0 %>%
+  filter(Time == "Enrolment") %>%
+  select(Code, group2, Day, Daygr, VCAM1, SDC1, Ang2, IL8, IP10, IL1RA, CD163, TREM1, Fer, CRP) %>%
+  gather(., "Biomarker", "Result", 5:14)
+
+## Follow up
+tmp2 <- dat0 %>%
+  filter(Time == "Follow up") %>%
+  select(Code, group2, Day, Daygr, VCAM1, SDC1, Ang2, IL8, IP10, IL1RA, CD163, TREM1, Fer, CRP) %>%
+  gather(., "Biomarker", "Result", 5:14)
+
+## Merge long data for biomarkers
+dat_plot <- bind_rows(tmp1, tmp2) %>%
+  mutate(Daygr = factor(Daygr, levels = c("Day 1", "Day 2", "Day 3", "Day 10-20", "Day >20"),
+                        labels = c("1", "2", "3", "10-20", ">20")),
+         Biomarker = factor(Biomarker, levels=c("VCAM1", "SDC1", "Ang2", "IL8", "IP10", "IL1RA", "CD163", "TREM1", "Fer", "CRP"), 
+                            labels=c("VCAM-1 (ng/ml)", "SDC-1 (pg/ml)", "Ang-2 (pg/ml)", "IL-8 (pg/ml)", "IP-10 (pg/ml)", 
+                                     "IL-1RA (pg/ml)", "sCD163 (ng/ml)", "sTREM-1 (pg/ml)", "Ferritin (ng/ml)", "CRP (mg/l)")))
+```
+
+###########################################################################################
+#### Table 1. Summary of clinical data by primary outcome.
+```{r table 1, echo=FALSE, message=FALSE, warning=FALSE}
+# All patients
+t1 <- dat %>%
+  select(group2, Country, Age, Sex, Day, Serotype, Serology, Obesity, Diabetes, WHO2009, hospital) %>%
+  tbl_summary(by = group2,
+              statistic = list(all_continuous() ~ "{median} ({p25}, {p75})", all_categorical() ~ "{n} ({p})"),
+              value = list(Sex ~ "Male"),
+              digits = list(all_continuous() ~ c(0,0)),
+              label = list(Age ~ "Age (years)", Sex ~ "Gender male", Day ~ "Illness day at enrolment",
+                           Serology ~ "Immune status", WHO2009 ~ "WHO 2009 classification", hospital ~ "Hospitalization")) %>%
+  add_stat_label(label = c(all_categorical() ~ "n (%)", Age ~ "median (1st, 3rd quartiles)")) %>%
+  modify_header(label = "", stat_by = "**{level} (N={n})**")
+
+# Children (<15 years of age)
+t2 <- dat %>%
+  filter(age15=="No") %>%
+  select(group2, Country, Age, Sex, Day, Serotype, Serology, Obesity, Diabetes, WHO2009, hospital) %>%
+  tbl_summary(by = group2,
+              statistic = list(all_continuous() ~ "{median} ({p25}, {p75})", all_categorical() ~ "{n} ({p})"),
+              value = list(Sex ~ "Male"),
+              digits = list(all_continuous() ~ c(0,0)),
+              label = list(Age ~ "Age (years)", Sex ~ "Gender male", Day ~ "Illness day at enrolment",
+                           Serology ~ "Immune status", WHO2009 ~ "WHO 2009 classification", hospital ~ "Hospitalization")) %>%
+  add_stat_label(label = c(all_categorical() ~ "n (%)", Age ~ "median (1st, 3rd quartiles)")) %>%
+  modify_header(label = "", stat_by = "**{level} (N={n})**")
+
+# Adults (>=15 years of age)
+t3 <- dat %>%
+  filter(age15=="Yes") %>%
+  select(group2, Country, Age, Sex, Day, Serotype, Serology, Obesity, Diabetes, WHO2009, hospital) %>%
+  tbl_summary(by = group2,
+              statistic = list(all_continuous() ~ "{median} ({p25}, {p75})", all_categorical() ~ "{n} ({p})"),
+              value = list(Sex ~ "Male"),
+              digits = list(all_continuous() ~ c(0,0)),
+              label = list(Age ~ "Age (years)", Sex ~ "Gender male", Day ~ "Illness day at enrolment",
+                           Serology ~ "Immune status", WHO2009 ~ "WHO 2009 classification", hospital ~ "Hospitalization")) %>%
+  add_stat_label(label = c(all_categorical() ~ "n (%)", Age ~ "median (1st, 3rd quartiles)")) %>%
+  modify_header(label = "", stat_by = "**{level} (N={n})**")
+
+# Merge tables
+tbl_merge(tbls = list(t1, t2, t3),
+          tab_spanner = c("**All patients**", "**Children**", "**Adults**"))
+```
+
+###########################################################################################
+#### Figure 2. Biomarker levels by groups.
+```{r fig 2, echo=FALSE, message=FALSE, warning=FALSE}
+tick <- c(0,1,4,10,40,100,200,400,1000,4000,10000,20000,40000,70000) # for y-axis tick labels
+
+p2 <- dat_plot %>%
+  ggplot(., aes(Daygr, Result^(1/4), fill=group2, color=group2)) +
+  geom_boxplot(alpha=.5, outlier.size=.9, lwd=.4, fatten=1) +
+  geom_boxplot(alpha=0, outlier.color=NA, color="black", lwd=.4, fatten=1) +
+  facet_wrap(~ Biomarker, scales="free", ncol=5) +
+  scale_y_continuous(breaks=tick^(1/4), labels=tick) +
+  xlab("Illness day (day 1 [n=140]; day 2 [n=390]; day 3 [n=307]; day 10-20 [n=625]; day >20 [n=43])") +
+  theme(axis.title.y=element_blank(), legend.position="top", legend.title=element_blank(),
+        axis.text.y=element_text(size=rel(.8)))
+p2
+#ggsave(filename="Fig 2.pdf", dpi=300, plot=p2, width=11, height=8)
+```
+
+###########################################################################################
+#### Table 2. Results from models for the primary endpoint (severe or moderate dengue).
+```{r table 2, echo=FALSE, message=FALSE, warning=FALSE}
+# Set datadist for 'lrm' function [rms]
+dd <- datadist(dat1); options(datadist="dd")
+
+# Use my function 'get_est1' to get ORs and CIs from models
+tmp1 <- data.frame(
+  sort1 = rep(c(1:10), 2),
+  sort2 = c(rep(2,10), rep(3,10)),
+  bio = rep(c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP"), 2),
+  ref1 = c(ref0-1, ref0),
+  ref2 = c(ref0, ref0+1)
+) %>%
+  arrange(sort1, sort2) %>%
+  group_by(sort1, sort2) %>%
+  do(cbind(.,
+           # Children - single models
+           or1c = get_est1(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=10, dat=dat1),
+           lo1c = get_est1(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=10, dat=dat1),
+           up1c = get_est1(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=10, dat=dat1),
+           # Children - global model
+           or2c = get_est2(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=10, dat=dat1),
+           lo2c = get_est2(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=10, dat=dat1),
+           up2c = get_est2(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=10, dat=dat1),
+           # Adults - single models
+           or1a = get_est1(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=25, dat=dat1),
+           lo1a = get_est1(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=25, dat=dat1),
+           up1a = get_est1(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=25, dat=dat1),
+           # Adults - global model
+           or2a = get_est2(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=25, dat=dat1),
+           lo2a = get_est2(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=25, dat=dat1),
+           up2a = get_est2(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=25, dat=dat1))) %>%
+  ungroup()
+for (i in 6:17) {tmp1[[i]] <- sprintf("%.2f", round(tmp1[[i]],2))}
+
+# Use my function 'get_est1' to get p-values from models
+tmp2 <- data.frame(
+  sort1 = c(1:10),
+  sort2 = rep(1,10),
+  bio = c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP")
+) %>%
+  group_by(sort1) %>%
+  do(cbind(.,
+           p.s1 = get_est1(out="sev.or.inte", bio=.$bio, est="p", dat=dat1), # P overall from single models
+           p.s1_int = get_est1(out="sev.or.inte", bio=.$bio, est="p int", dat=dat1), # P interaction from single models
+           p.g1 = get_est2(out="sev.or.inte", bio=.$bio, est="p", dat=dat1), # P overall from global models
+           p.g1_int = get_est2(out="sev.or.inte", bio=.$bio, est="p int", dat=dat1))) %>% # P interaction from global models
+  ungroup()
+for (i in 4:7) {tmp2[[i]] <- ifelse(tmp2[[i]]<0.001, "<0.001", sprintf("%.3f", round(tmp2[[i]],3)))}  
+
+# Combine results into a table
+res1 <- bind_rows(tmp1, tmp2) %>%
+  arrange(sort1, sort2) %>%
+  mutate(bio = ifelse(!is.na(ref1), paste(" -", round(2^ref2,0), "vs", round(2^ref1,0), sep=" "), as.character(bio)),
+         or.sc1 = ifelse(is.na(lo1c), NA, paste(or1c, " (", lo1c, "-", up1c, ")", sep="")), # s: single model; c: children
+         or.gc1 = ifelse(is.na(lo2c), NA, paste(or2c, " (", lo2c, "-", up2c, ")", sep="")), # g: global model
+         or.sa1 = ifelse(is.na(lo1a), NA, paste(or1a, " (", lo1a, "-", up1a, ")", sep="")), # a: adults
+         or.ga1 = ifelse(is.na(lo2a), NA, paste(or2a, " (", lo2a, "-", up2a, ")", sep=""))) %>%
+  select(bio, or.sc1, or.sa1, p.s1, p.s1_int, or.gc1, or.ga1, p.g1, p.g1_int)
+
+names(res1) <- c("", "OR (children - single)", "OR (adults - single)", "P overall (single)", "P interaction (single)",
+                 "OR (children - global)", "OR (adults - global)", "P overall (global)", "P interaction (global)")
+
+# Report the results
+knitr::kable(res1)
+```
+
+###########################################################################################
+#### Figure 3. Results from models for the primary endpoint (severe or moderate dengue).
+```{r fig 3, echo=FALSE, message=FALSE, warning=FALSE}
+# Set datadist for 'lrm' function [rms]
+dd <- datadist(dat1); options(datadist="dd")
+
+# Get results from models for children
+dd$limits["Adjust to","Age"] <- 10
+
+dat_m1 <- get_pred1(out="sev.or.inte", bio="VCAM", age=10, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m2 <- get_pred1(out="sev.or.inte", bio="SDC", age=10, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m3 <- get_pred1(out="sev.or.inte", bio="Ang", age=10, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m4 <- get_pred1(out="sev.or.inte", bio="IL8", age=10, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m5 <- get_pred1(out="sev.or.inte", bio="IP10", age=10, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m6 <- get_pred1(out="sev.or.inte", bio="IL1RA", age=10, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m7 <- get_pred1(out="sev.or.inte", bio="CD163", age=10, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m8 <- get_pred1(out="sev.or.inte", bio="TREM", age=10, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m9 <- get_pred1(out="sev.or.inte", bio="Fer", age=10, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m10 <- get_pred1(out="sev.or.inte", bio="CRP", age=10, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+
+dat_mg1 <- get_pred2(out="sev.or.inte", bio="VCAM", age=10, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg2 <- get_pred2(out="sev.or.inte", bio="SDC", age=10, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg3 <- get_pred2(out="sev.or.inte", bio="Ang", age=10, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg4 <- get_pred2(out="sev.or.inte", bio="IL8", age=10, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg5 <- get_pred2(out="sev.or.inte", bio="IP10", age=10, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg6 <- get_pred2(out="sev.or.inte", bio="IL1RA", age=10, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg7 <- get_pred2(out="sev.or.inte", bio="CD163", age=10, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg8 <- get_pred2(out="sev.or.inte", bio="TREM", age=10, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg9 <- get_pred2(out="sev.or.inte", bio="Fer", age=10, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg10 <- get_pred2(out="sev.or.inte", bio="CRP", age=10, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+
+dat_p1 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10) %>%
+  mutate(age = "10 years")
+
+# Get results from models for adults
+dd$limits["Adjust to","Age"] <- 25
+
+dat_m1 <- get_pred1(out="sev.or.inte", bio="VCAM", age=25, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m2 <- get_pred1(out="sev.or.inte", bio="SDC", age=25, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m3 <- get_pred1(out="sev.or.inte", bio="Ang", age=25, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m4 <- get_pred1(out="sev.or.inte", bio="IL8", age=25, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m5 <- get_pred1(out="sev.or.inte", bio="IP10", age=25, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m6 <- get_pred1(out="sev.or.inte", bio="IL1RA", age=25, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m7 <- get_pred1(out="sev.or.inte", bio="CD163", age=25, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m8 <- get_pred1(out="sev.or.inte", bio="TREM", age=25, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m9 <- get_pred1(out="sev.or.inte", bio="Fer", age=25, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m10 <- get_pred1(out="sev.or.inte", bio="CRP", age=25, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+
+dat_mg1 <- get_pred2(out="sev.or.inte", bio="VCAM", age=25, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg2 <- get_pred2(out="sev.or.inte", bio="SDC", age=25, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg3 <- get_pred2(out="sev.or.inte", bio="Ang", age=25, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg4 <- get_pred2(out="sev.or.inte", bio="IL8", age=25, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg5 <- get_pred2(out="sev.or.inte", bio="IP10", age=25, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg6 <- get_pred2(out="sev.or.inte", bio="IL1RA", age=25, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg7 <- get_pred2(out="sev.or.inte", bio="CD163", age=25, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg8 <- get_pred2(out="sev.or.inte", bio="TREM", age=25, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg9 <- get_pred2(out="sev.or.inte", bio="Fer", age=25, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg10 <- get_pred2(out="sev.or.inte", bio="CRP", age=25, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+
+dat_p2 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10) %>%
+  mutate(age = "25 years")
+
+# Merge results for children and adults
+vis1 <- rbind(dat_p1, dat_p2) %>% mutate(outcome = "outcome 1")
+
+# Merge data for plots
+tmp0 <- dat1 %>% arrange(age15) %>% select(sev.or.inte)
+tmp <- data.frame(sev.or.inte = rep(tmp0$sev.or.inte, 20))
+  
+tmp_p1 <- vis1 %>%
+  arrange(biomarker, model) %>%
+  mutate(value1 = 2^value,
+         age = factor(age, levels=c("10 years", "25 years")),
+         gr = ifelse(model=="Single model" & age=="10 years", 1,
+                     ifelse(model=="Single model" & age=="25 years", 2,
+                            ifelse(model=="Global model" & age=="10 years", 3, 4))),
+         gr = factor(gr, levels=c(1:4), labels=c("Single children", "Single adults", "Global children", "Global adults")),
+         model = factor(model, levels=c("Single model", "Global model"))) %>%
+  bind_cols(., tmp)
+
+vline <- tmp_p1 %>%
+  filter(model=="Single model") %>%
+  filter(yhat==0) %>%
+  select(biomarker, value, value1) %>%
+  rename(vline=value, vline1=value1)
+
+dat_p <- left_join(tmp_p1, vline, by="biomarker")
+
+# Alternative data to limit to 5th - 95th of the values
+dat_alt <- dat_p %>%
+  group_by(biomarker, model) %>%
+  mutate(up = quantile(value, .95),
+         lo = quantile(value, .05)) %>%
+  ungroup() %>%
+  mutate(is.outlier = value<lo | value>up | value<0,
+         value = ifelse(is.outlier, NA, value),
+         value1 = ifelse(is.outlier, NA, value1),
+         yhat = ifelse(is.outlier, NA, yhat),
+         lower = ifelse(is.outlier, NA, lower),
+         upper = ifelse(is.outlier, NA, upper))
+
+dat_1_5 <- dat_alt %>% 
+  filter(biomarker %in% c("VCAM", "SDC", "Ang", "IL8", "IP10")) %>%
+  mutate(biomarker = factor(biomarker, levels=c("VCAM", "SDC", "Ang", "IL8", "IP10")))
+
+dat_6_10 <- dat_alt %>% 
+  filter(biomarker %in% c("IL1RA", "CD163", "TREM", "Fer", "CRP")) %>%
+  mutate(biomarker = factor(biomarker, levels=c("IL1RA", "CD163", "TREM", "Fer", "CRP")))
+
+# Modify facets' scales
+#require(facetscales)
+xVCAM <- c(1,4,15,60,250,1000,4000)
+xSDC <- c(1400,2000,2800,4000,5600)
+xAng <- c(50,100,250,500,1000,2000)
+xIL8 <- c(5,7,10,14,20,28,40)
+xIP10 <- c(25,100,400,1600,6400)
+xIL1RA <- c(1000,2000,4000,8000,16000)
+xCD163 <- c(75,150,300,600)
+xTREM <- c(35,50,70,100,140,200)
+xFer <- c(50,100,200,400,800)
+xCRP <- c(2.5,5,10,20,40,80)
+
+scales_x <- list(
+  `VCAM` = scale_x_continuous(breaks = log2(xVCAM), labels = xVCAM),
+  `SDC` = scale_x_continuous(breaks = log2(xSDC), labels = xSDC),
+  `Ang` = scale_x_continuous(breaks = log2(xAng), labels = xAng), 
+  `IL8` = scale_x_continuous(breaks = log2(xIL8), labels = xIL8), 
+  `IP10` = scale_x_continuous(breaks = log2(xIP10), labels = xIP10), 
+  `IL1RA` = scale_x_continuous(breaks = log2(xIL1RA), labels = xIL1RA), 
+  `CD163` = scale_x_continuous(breaks = log2(xCD163), labels = xCD163), 
+  `TREM` = scale_x_continuous(breaks = log2(xTREM), labels = xTREM), 
+  `Fer` = scale_x_continuous(breaks = log2(xFer), labels = xFer), 
+  `CRP` = scale_x_continuous(breaks = log2(xCRP), labels = xCRP)
+)
+
+ybreak1 <- c(.125, .25, .5, 1, 2, 4, 8)
+ybreak2 <- c(.125, .25, .5, 1, 2, 4)
+
+scales_y1 <- list(
+  `Single model` = scale_y_continuous(limits = c(log(.124), log(8.01)), breaks = log(ybreak1), labels = ybreak1),
+  `Global model` = scale_y_continuous(limits = c(log(.124), log(8.01)), breaks = log(ybreak1), labels = ybreak1)
+)
+
+scales_y2 <- list(
+  `Single model` = scale_y_continuous(limits = c(log(.124), log(4.01)), breaks = log(ybreak2), labels = ybreak2),
+  `Global model` = scale_y_continuous(limits = c(log(.124), log(4.01)), breaks = log(ybreak2), labels = ybreak2)
+)
+
+# Set facets' names
+models <- c(`Single model` = "Single model",
+            `Global model` = "Global model")
+
+biomarkers <- c(`VCAM` = "VCAM-1 (ng/ml)",
+                `SDC`= "SDC-1 (pg/ml)",
+                `Ang` = "Ang-2 (pg/ml)",
+                `IL8` = "IL-8 (pg/ml)",
+                `IP10` = "IP-10 (pg/ml)",
+                `IL1RA` = "IL-1RA (pg/ml)",
+                `CD163` = "sCD163 (ng/ml)",
+                `TREM` = "sTREM-1 (pg/ml)",
+                `Fer` = "Ferritin (ng/ml)",
+                `CRP` = "CRP (mg/l)")
+
+# Plot for the first 5 biomarkers
+p.1.5 <- ggplot(dat_1_5, aes(x=value)) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=age), alpha=.15) +
+  geom_vline(aes(xintercept=vline), color="black", linetype="dashed", alpha=.4) +
+  geom_hline(yintercept=0, color="black", linetype="dashed", alpha=.4) +
+  geom_line(aes(y=yhat, color=age), size=.5, alpha=.7) +
+  geom_rug(data=filter(dat_1_5, model=="Single model" & sev.or.inte==0 & age=="10 years"), sides="b", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_1_5, model=="Single model" & sev.or.inte==1 & age=="10 years"), sides="t", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_1_5, model=="Global model" & sev.or.inte==0 & age=="25 years"), sides="b", alpha=.2, color="blue") +
+  geom_rug(data=filter(dat_1_5, model=="Global model" & sev.or.inte==1 & age=="25 years"), sides="t", alpha=.2, color="blue") +
+  scale_color_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  scale_fill_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  ylab("Odds ratio") +
+  theme(legend.position="top", legend.title=element_blank(), axis.title.x=element_blank(), axis.text.x=element_text(angle=45)) +
+  facet_grid_sc(cols=vars(biomarker), rows=vars(model), 
+                scales=list(x=scales_x, y=scales_y1),
+                labeller = as_labeller(c(models, biomarkers)))
+
+# Plot for the last 5 biomarkers
+p.6.10 <- ggplot(dat_6_10, aes(x=value)) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=age), alpha=.15) +
+  geom_vline(aes(xintercept=vline), color="black", linetype="dashed", alpha=.4) +
+  geom_hline(yintercept=0, color="black", linetype="dashed", alpha=.4) +
+  geom_line(aes(y=yhat, color=age), size=.5, alpha=.7) +
+  geom_rug(data=filter(dat_6_10, model=="Single model" & sev.or.inte==0 & age=="10 years"), sides="b", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_6_10, model=="Single model" & sev.or.inte==1 & age=="10 years"), sides="t", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_6_10, model=="Global model" & sev.or.inte==0 & age=="25 years"), sides="b", alpha=.2, color="blue") +
+  geom_rug(data=filter(dat_6_10, model=="Global model" & sev.or.inte==1 & age=="25 years"), sides="t", alpha=.2, color="blue") +
+  scale_color_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  scale_fill_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  ylab("Odds ratio") +
+  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_text(angle=45)) +
+  facet_grid_sc(cols=vars(biomarker), rows=vars(model), 
+                scales=list(x=scales_x, y=scales_y2),
+                labeller = as_labeller(c(models, biomarkers)))
+
+# Merge plots
+p3 <- gridExtra::grid.arrange(p.1.5, p.6.10, nrow=2, heights=c(1,.86))
+#ggsave(filename="Fig 3.pdf", p3, dpi=300, width=11, height=8)
+```
+
+###########################################################################################
+#### Table 3. Best combinations of biomarkers associated with severe or moderate dengue for children.
+```{r table 3, echo=FALSE, message=FALSE, warning=FALSE}
+# EPV --------------------------------------------------------------
+pred <- c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP")
+
+# Estimate full model ----------------------------------------------
+full_mod <- glm(sev.or.inte ~ VCAM + SDC + Ang + IL8 + IP10 + IL1RA + CD163 + TREM + Fer + CRP, 
+                family=binomial, data=dat1c, x=T, y=T)
+
+# Selected model ---------------------------------------------------
+sel_var <- matrix(0, ncol=length(pred)+1, nrow=5, dimnames=list(NULL, c(pred, "aic")))
+
+for (i in 1:5) {
+  if (i==1) {
+    bs <- dredge(full_mod, rank="AIC")
+  } else {
+    bs <- dredge(full_mod, rank="AIC", m.lim=c(i,i))
+  }
+  bs_var <- attr(get.models(bs, 1)[[1]]$terms, "term.labels")
+
+  for (j in 1:(ncol(sel_var)-1)) {sel_var[i,j] <- ifelse(names(sel_var[i,j]) %in% bs_var, 1, 0)}
+  formula <- paste("sev.or.inte~", paste(names(sel_var[i,][sel_var[i,]==1]), collapse = "+"))
+  sel_mod <- glm(formula, data = dat1c, family = binomial, x = T, y = T)
+  sel_var[i, ncol(sel_var)] <- AIC(sel_mod)
+}
+
+# Report results --------------------------------------------------
+out1 <- as.data.frame(sel_var) %>% mutate(AIC = round(aic,1)) %>% select(-aic)
+for (i in 1:(ncol(out1)-1)) {out1[,i] <- ifelse(out1[,i]==0, NA, "+")}
+
+out2 <- as.data.frame(t(out1))
+colnames(out2) <- c("Best of all combinations", "Best combination of 2 variables", "Best combination of 3 variables",
+                    "Best combination of 4 variables", "Best combination of 5 variables")
+rownames(out2) <- c("- VCAM-1", "- SDC-1", "- Ang-2", "- IL-8", "- IP-10", "- IL-1RA", "- sCD163", "- sTREM-1",
+                    "- Ferritin", "- CRP", "AIC of the selected model")
+
+knitr::kable(out2)
+
+# For bootstrap results please look at Appendix 7-tables 1, 2 (for the best of all combinations)
+# and the bootstrap codes for the best combinations of 2, 3, 4, and 5 variables
+```
+
+###########################################################################################
+#### Table 4. Best combinations of biomarkers associated with severe or moderate dengue for adults.
+```{r table 4, echo=FALSE, message=FALSE, warning=FALSE}
+# EPV --------------------------------------------------------------
+pred <- c("VCAM", "SDC", "Ang", "IL8", "ns1(IP10)", "IL1RA", "CD163", "TREM", "Fer", "CRP")
+
+# Estimate full model ----------------------------------------------
+full_mod <- glm(sev.or.inte ~ VCAM + SDC + Ang + IL8 + ns1(IP10) + IL1RA + CD163 + TREM + Fer + CRP, 
+                family=binomial, data=dat1a, x=T, y=T)
+
+# Selected model ---------------------------------------------------
+sel_var <- matrix(0, ncol=length(pred)+1, nrow=5, dimnames=list(NULL, c(pred, "aic")))
+
+for (i in 1:5) {
+  if (i==1) {
+    bs <- dredge(full_mod, rank="AIC")
+  } else {
+    bs <- dredge(full_mod, rank="AIC", m.lim=c(i,i))
+  }
+  bs_var <- attr(get.models(bs, 1)[[1]]$terms, "term.labels")
+
+  for (j in 1:(ncol(sel_var)-1)) {sel_var[i,j] <- ifelse(names(sel_var[i,j]) %in% bs_var, 1, 0)}
+  formula <- paste("sev.or.inte~", paste(names(sel_var[i,][sel_var[i,]==1]), collapse = "+"))
+  sel_mod <- glm(formula, data = dat1a, family = binomial, x = T, y = T)
+  sel_var[i, ncol(sel_var)] <- AIC(sel_mod)
+}
+
+# Report results --------------------------------------------------
+out1 <- as.data.frame(sel_var) %>% mutate(AIC = round(aic,1)) %>% select(-aic)
+for (i in 1:(ncol(out1)-1)) {out1[,i] <- ifelse(out1[,i]==0, NA, "+")}
+
+out2 <- as.data.frame(t(out1))
+colnames(out2) <- c("Best of all combinations", "Best combination of 2 variables", "Best combination of 3 variables",
+                    "Best combination of 4 variables", "Best combination of 5 variables")
+rownames(out2) <- c("- VCAM-1", "- SDC-1", "- Ang-2", "- IL-8", "- IP-10", "- IL-1RA", "- sCD163", "- sTREM-1",
+                    "- Ferritin", "- CRP", "AIC of the selected model")
+
+knitr::kable(out2)
+
+# For bootstrap results please look at Appendix 7-tables 3, 4 (for the best of all combinations)
+# and the bootstrap codes for the best combinations of 2, 3, 4, and 5 variables
+```
+
+###########################################################################################
+#### Appendix 3. Statistical analysis. Analysis to find the best combination of biomarkers to predict the primary endpoint (aim #2) - Step #1 - AICs of models
+```{r Appendix 3, echo=FALSE, message=FALSE, warning=FALSE}
+# For children
+screen_child <- data.frame(bio = c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP")) %>%
+  group_by(bio) %>%
+  do(cbind(.,
+           model1_child = screen(mod=1, bio=.$bio, dat=dat1c),
+           model2_child = screen(mod=2, bio=.$bio, dat=dat1c),
+           model3_child = screen(mod=3, bio=.$bio, dat=dat1c),
+           model4_child = screen(mod=4, bio=.$bio, dat=dat1c))) %>%
+  ungroup() %>%
+  mutate(bio = factor(bio, levels=c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP"))) %>%
+  arrange(bio)
+
+# For adults
+screen_adult <- data.frame(bio = c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP")) %>%
+  group_by(bio) %>%
+  do(cbind(.,
+           model1_adult = screen(mod=1, bio=.$bio, dat=dat1a),
+           model2_adult = screen(mod=2, bio=.$bio, dat=dat1a),
+           model3_adult = screen(mod=3, bio=.$bio, dat=dat1a),
+           model4_adult = screen(mod=4, bio=.$bio, dat=dat1a))) %>%
+  ungroup() %>%
+  mutate(bio = factor(bio, levels=c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP"))) %>%
+  arrange(bio)
+
+# Combine results
+out <- full_join(screen_child, screen_adult, by="bio")
+knitr::kable(out)
+```
+
+###########################################################################################
+#### Appendix 4—table 1. Summary of clinical phenotype of the primary endpoint.
+```{r table A4.1, echo=FALSE, message=FALSE, warning=FALSE}
+dat %>%
+  filter(sev.or.inte == 1) %>%
+  mutate(age15 = factor(age15, levels = c("No", "Yes"), labels = c("Children", "Adults")),
+         mod.only = sev.or.inte - sev.only) %>% # to create 'moderate dengue'
+  select(age15, sev.only, sev.leak, shock, res.dis, sev.neu, sev.bleed, sev.other, sev.liver, mod.only, mod.leak, mod.liver, mod.bleed, mod.other, mod.neu) %>%
+  tbl_summary(by = age15,
+              statistic = list(all_categorical() ~ "{n} ({p})"),
+              label = list(sev.only ~ "Severe dengue, n (%)", sev.leak ~ "- Severe plasma leakage", 
+                           shock ~ " + Dengue shock syndrome", res.dis ~ " + Respiratory distress", 
+                           sev.neu ~ "- Severe neurologic involvement", sev.bleed ~ "- Severe bleeding", 
+                           sev.other ~ "- Severe other major organ failure", sev.liver ~ "- Severe hepatic involvement", 
+                           mod.only ~ "Moderate dengue, n (%)", mod.leak ~ "- Moderate plasma leakage", 
+                           mod.liver ~ "- Moderate hepatic involvement", mod.bleed ~ "- Moderate bleeding", 
+                           mod.other ~ "- Moderate other major organ involvement", mod.neu ~ "- Moderate neurologic involvement")) %>%
+  add_overall() %>%
+  modify_header(label = "", stat_0 = "**All patients (N={N})**", stat_by = "**{level} (N={n})**") %>%
+  modify_footnote(update = everything() ~ NA)
+```
+
+###########################################################################################
+#### Appendix 4—table 2. Summary of biomarkers’ data (at enrollment)
+```{r table A4.2a, echo=FALSE, message=FALSE, warning=FALSE}
+# All patients
+t1 <- dat0 %>%
+  filter(Time == "Enrolment") %>%
+  mutate(viremia = Viremia/(10^6)) %>% # to summarize Viremia as 10^6 copies/ml
+  select(group2, VCAM1, SDC1, Ang2, IL8, IP10, IL1RA, CD163, TREM1, Fer, CRP, viremia) %>%
+  tbl_summary(by = group2,
+              statistic = list(all_continuous() ~ "{median} ({p25}, {p75})"),
+              digits = list(all_continuous() ~ c(0,0), viremia ~ c(1,1)),
+              label = list(VCAM1 ~ "VCAM-1 (ng/ml)", SDC1 ~ "SDC-1 (pg/ml)", Ang2 ~ "Ang-2 (pg/ml)", IL8 ~ "IL-8 (pg/ml)",
+                           IP10 ~ "IP-10 (pg/ml)", IL1RA ~ "IL-1RA (pg/ml)", CD163 ~ "sCD163 (ng/ml)", TREM1 ~ "sTREM-1 (pg/ml)",
+                           Fer ~ "Ferritin (ng/ml)", CRP ~ "CRP (mg/l)", viremia ~ "Viremia (10^6 copies/ml)")) %>%
+  modify_header(label = "", stat_by = "**{level} (N={n})**")
+
+# Children (<15 years of age)
+t2 <- dat0 %>%
+  filter(Time == "Enrolment") %>%
+  filter(age15 == "No") %>%
+  mutate(viremia = Viremia/(10^6)) %>% # to summarize Viremia as 10^6 copies/ml
+  select(group2, VCAM1, SDC1, Ang2, IL8, IP10, IL1RA, CD163, TREM1, Fer, CRP, viremia) %>%
+  tbl_summary(by = group2,
+              statistic = list(all_continuous() ~ "{median} ({p25}, {p75})"),
+              digits = list(all_continuous() ~ c(0,0), viremia ~ c(1,1)),
+              label = list(VCAM1 ~ "VCAM-1 (ng/ml)", SDC1 ~ "SDC-1 (pg/ml)", Ang2 ~ "Ang-2 (pg/ml)", IL8 ~ "IL-8 (pg/ml)",
+                           IP10 ~ "IP-10 (pg/ml)", IL1RA ~ "IL-1RA (pg/ml)", CD163 ~ "sCD163 (ng/ml)", TREM1 ~ "sTREM-1 (pg/ml)",
+                           Fer ~ "Ferritin (ng/ml)", CRP ~ "CRP (mg/l)", viremia ~ "Viremia (10^6 copies/ml)")) %>%
+  modify_header(label = "", stat_by = "**{level} (N={n})**")
+
+# Adults (>=15 years of age)
+t3 <- dat0 %>%
+  filter(Time == "Enrolment") %>%
+  filter(age15 == "Yes") %>%
+  mutate(viremia = Viremia/(10^6)) %>% # to summarize Viremia as 10^6 copies/ml
+  select(group2, VCAM1, SDC1, Ang2, IL8, IP10, IL1RA, CD163, TREM1, Fer, CRP, viremia) %>%
+  tbl_summary(by = group2,
+              statistic = list(all_continuous() ~ "{median} ({p25}, {p75})"),
+              digits = list(all_continuous() ~ c(0,0), viremia ~ c(1,1)),
+              label = list(VCAM1 ~ "VCAM-1 (ng/ml)", SDC1 ~ "SDC-1 (pg/ml)", Ang2 ~ "Ang-2 (pg/ml)", IL8 ~ "IL-8 (pg/ml)",
+                           IP10 ~ "IP-10 (pg/ml)", IL1RA ~ "IL-1RA (pg/ml)", CD163 ~ "sCD163 (ng/ml)", TREM1 ~ "sTREM-1 (pg/ml)",
+                           Fer ~ "Ferritin (ng/ml)", CRP ~ "CRP (mg/l)", viremia ~ "Viremia (10^6 copies/ml)")) %>%
+  modify_header(label = "", stat_by = "**{level} (N={n})**")
+
+# Merge tables
+tbl_merge(tbls = list(t1, t2, t3),
+          tab_spanner = c("**All patients**", "**Children**", "**Adults**"))
+```
+
+#### Appendix 4—table 2. Summary of biomarkers’ data (at follow-up)
+```{r table A4.2b, echo=FALSE, message=FALSE, warning=FALSE}
+# All patients
+t1 <- dat0 %>%
+  filter(Time == "Follow up") %>%
+  select(group2, VCAM1, SDC1, Ang2, IL8, IP10, IL1RA, CD163, TREM1, Fer, CRP) %>%
+  tbl_summary(by = group2,
+              statistic = list(all_continuous() ~ "{median} ({p25}, {p75})"),
+              digits = list(all_continuous() ~ c(0,0), c(IL8, CRP) ~ c(1,1)),
+              label = list(VCAM1 ~ "VCAM-1 (ng/ml)", SDC1 ~ "SDC-1 (pg/ml)", Ang2 ~ "Ang-2 (pg/ml)", IL8 ~ "IL-8 (pg/ml)",
+                           IP10 ~ "IP-10 (pg/ml)", IL1RA ~ "IL-1RA (pg/ml)", CD163 ~ "sCD163 (ng/ml)", TREM1 ~ "sTREM-1 (pg/ml)",
+                           Fer ~ "Ferritin (ng/ml)", CRP ~ "CRP (mg/l)")) %>%
+  modify_header(label = "", stat_by = "**{level} (N={n})**")
+
+# Children (<15 years of age)
+t2 <- dat0 %>%
+  filter(Time == "Follow up") %>%
+  filter(age15 == "No") %>%
+  select(group2, VCAM1, SDC1, Ang2, IL8, IP10, IL1RA, CD163, TREM1, Fer, CRP) %>%
+  tbl_summary(by = group2,
+              statistic = list(all_continuous() ~ "{median} ({p25}, {p75})"),
+              digits = list(all_continuous() ~ c(0,0), c(IL8, CRP) ~ c(1,1)),
+              label = list(VCAM1 ~ "VCAM-1 (ng/ml)", SDC1 ~ "SDC-1 (pg/ml)", Ang2 ~ "Ang-2 (pg/ml)", IL8 ~ "IL-8 (pg/ml)",
+                           IP10 ~ "IP-10 (pg/ml)", IL1RA ~ "IL-1RA (pg/ml)", CD163 ~ "sCD163 (ng/ml)", TREM1 ~ "sTREM-1 (pg/ml)",
+                           Fer ~ "Ferritin (ng/ml)", CRP ~ "CRP (mg/l)")) %>%
+  modify_header(label = "", stat_by = "**{level} (N={n})**")
+
+# Adults (>=15 years of age)
+t3 <- dat0 %>%
+  filter(Time == "Follow up") %>%
+  filter(age15 == "Yes") %>%
+  select(group2, VCAM1, SDC1, Ang2, IL8, IP10, IL1RA, CD163, TREM1, Fer, CRP) %>%
+  tbl_summary(by = group2,
+              statistic = list(all_continuous() ~ "{median} ({p25}, {p75})"),
+              digits = list(all_continuous() ~ c(0,0), c(IL8, CRP) ~ c(1,1)),
+              label = list(VCAM1 ~ "VCAM-1 (ng/ml)", SDC1 ~ "SDC-1 (pg/ml)", Ang2 ~ "Ang-2 (pg/ml)", IL8 ~ "IL-8 (pg/ml)",
+                           IP10 ~ "IP-10 (pg/ml)", IL1RA ~ "IL-1RA (pg/ml)", CD163 ~ "sCD163 (ng/ml)", TREM1 ~ "sTREM-1 (pg/ml)",
+                           Fer ~ "Ferritin (ng/ml)", CRP ~ "CRP (mg/l)")) %>%
+  modify_header(label = "", stat_by = "**{level} (N={n})**")
+
+# Merge tables
+tbl_merge(tbls = list(t1, t2, t3),
+          tab_spanner = c("**All patients**", "**Children**", "**Adults**"))
+```
+
+###########################################################################################
+#### Appendix 4-figure 1. Biomarker levels by individual.
+```{r fig A4.1, echo=FALSE, message=FALSE, warning=FALSE}
+tick <- c(0,1,10,40,100,200,400,1000,4000,10000,20000,40000,70000) # for y-axis tick labels
+
+p41 <- ggplot(dat_plot, aes(Day, Result^(1/4), color=group2)) +
+  geom_point(alpha = 0.5, size = .5) +
+  geom_line(aes(group = Code), alpha = 0.07) +
+  facet_wrap(~ Biomarker, scales="free", ncol=5) +
+  scale_y_continuous(breaks=tick^(1/4), labels=tick) +
+  scale_x_continuous(breaks = c(1,3,10,15,20,25,30), 
+                     limit = c(1,31),
+                     name = "Illness day") +
+  theme_bw() +
+  theme(axis.title.y=element_blank(), legend.position="top", legend.title=element_blank(),
+        axis.text.y=element_text(size=rel(.8)))
+p41
+#ggsave(filename="A4_fig1.pdf", plot=p41, width=8.5, height=6.2)
+```
+
+###########################################################################################
+#### Appendix 4—figure 2. Pairwise correlation of biomarker levels at enrollment and age.
+```{r fig A4.2, echo=FALSE, message=FALSE, warning=FALSE}
+collabel <- c("Age", "VCAM-1", "SDC-1", "Ang-2", "IL-8", "IP-10", "IL-1RA", "sCD163", "sTREM-1", "Ferritin", "CRP", "Viremia")
+
+# Change biomarker's values to log-2 and viremia to log
+dat_fig42 <- dat %>%
+  mutate(log2_VCAM1 = as.numeric(log2(VCAM1)),
+         log2_SDC1 = as.numeric(log2(SDC1)),
+         log2_Ang2 = as.numeric(log2(Ang2)),
+         log2_IL8 = as.numeric(log2(IL8)),
+         log2_IP10 = as.numeric(log2(IP10)),
+         log2_IL1RA = as.numeric(log2(IL1RA)),
+         log2_CD163 = as.numeric(log2(CD163)),
+         log2_TREM1 = as.numeric(log2(TREM1)),
+         log2_Fer = as.numeric(log2(Fer)),
+         log2_CRP = as.numeric(log2(CRP)),
+         log_vir = as.numeric(log10(Viremia))) %>%
+  select(Age, log2_VCAM1, log2_SDC1, log2_Ang2, log2_IL8, log2_IP10, log2_IL1RA, log2_CD163, log2_TREM1, log2_Fer, log2_CRP, log_vir) %>%
+  as.data.frame(.)
+
+p42 <- GGally::ggpairs(dat_fig42,
+             lower = list(continuous = GGscatterPlot), # GGscatterPlot is a customized function
+             upper = "blank",
+             columnLabels = collabel) +
+  theme(panel.grid.minor = element_blank())
+p42
+#ggsave(filename="A4_fig2.pdf", plot=p42, width=9.5, height=9.5)
+```
+
+###########################################################################################
+#### Appendix 5—figure 1. Results from single models for severe/moderate dengue with the interaction with serotype.
+```{r fig A5.1, echo=FALSE, message=FALSE, warning=FALSE}
+# Set datadist for 'lrm' function [rms]
+dd <- datadist(dat1); options(datadist="dd")
+
+# For DENV-1
+dd$limits["Adjust to","Serotype"] <- "DENV-1"
+
+## For children
+dd$limits["Adjust to","Age"] <- 10
+dat_m1 <- get_pred1s(out="sev.or.inte", bio="VCAM", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+dat_m2 <- get_pred1s(out="sev.or.inte", bio="SDC", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+dat_m3 <- get_pred1s(out="sev.or.inte", bio="Ang", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+dat_m4 <- get_pred1s(out="sev.or.inte", bio="IL8", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+dat_m5 <- get_pred1s(out="sev.or.inte", bio="IP10", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+dat_m6 <- get_pred1s(out="sev.or.inte", bio="IL1RA", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+dat_m7 <- get_pred1s(out="sev.or.inte", bio="CD163", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+dat_m8 <- get_pred1s(out="sev.or.inte", bio="TREM", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+dat_m9 <- get_pred1s(out="sev.or.inte", bio="Fer", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+dat_m10 <- get_pred1s(out="sev.or.inte", bio="CRP", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+
+## For adults
+dd$limits["Adjust to","Age"] <- 25
+dat_mg1 <- get_pred1s(out="sev.or.inte", bio="VCAM", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+dat_mg2 <- get_pred1s(out="sev.or.inte", bio="SDC", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+dat_mg3 <- get_pred1s(out="sev.or.inte", bio="Ang", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+dat_mg4 <- get_pred1s(out="sev.or.inte", bio="IL8", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+dat_mg5 <- get_pred1s(out="sev.or.inte", bio="IP10", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+dat_mg6 <- get_pred1s(out="sev.or.inte", bio="IL1RA", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+dat_mg7 <- get_pred1s(out="sev.or.inte", bio="CD163", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+dat_mg8 <- get_pred1s(out="sev.or.inte", bio="TREM", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+dat_mg9 <- get_pred1s(out="sev.or.inte", bio="Fer", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+dat_mg10 <- get_pred1s(out="sev.or.inte", bio="CRP", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+
+dat_p1 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10) %>%
+  mutate(serotype = "DENV-1")
+
+# For others
+dd$limits["Adjust to","Serotype"] <- "Others"
+
+## For children
+dd$limits["Adjust to","Age"] <- 10
+dat_m1 <- get_pred1s(out="sev.or.inte", bio="VCAM", age=10, serotype="Others", dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+dat_m2 <- get_pred1s(out="sev.or.inte", bio="SDC", age=10, serotype="Others", dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+dat_m3 <- get_pred1s(out="sev.or.inte", bio="Ang", age=10, serotype="Others", dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+dat_m4 <- get_pred1s(out="sev.or.inte", bio="IL8", age=10, serotype="Others", dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+dat_m5 <- get_pred1s(out="sev.or.inte", bio="IP10", age=10, serotype="Others", dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+dat_m6 <- get_pred1s(out="sev.or.inte", bio="IL1RA", age=10, serotype="Others", dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+dat_m7 <- get_pred1s(out="sev.or.inte", bio="CD163", age=10, serotype="Others", dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+dat_m8 <- get_pred1s(out="sev.or.inte", bio="TREM", age=10, serotype="Others", dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+dat_m9 <- get_pred1s(out="sev.or.inte", bio="Fer", age=10, serotype="Others", dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+dat_m10 <- get_pred1s(out="sev.or.inte", bio="CRP", age=10, serotype="Others", dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+
+## For adults
+dd$limits["Adjust to","Age"] <- 25
+dat_mg1 <- get_pred1s(out="sev.or.inte", bio="VCAM", age=25, serotype="Others", dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+dat_mg2 <- get_pred1s(out="sev.or.inte", bio="SDC", age=25, serotype="Others", dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+dat_mg3 <- get_pred1s(out="sev.or.inte", bio="Ang", age=25, serotype="Others", dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+dat_mg4 <- get_pred1s(out="sev.or.inte", bio="IL8", age=25, serotype="Others", dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+dat_mg5 <- get_pred1s(out="sev.or.inte", bio="IP10", age=25, serotype="Others", dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+dat_mg6 <- get_pred1s(out="sev.or.inte", bio="IL1RA", age=25, serotype="Others", dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+dat_mg7 <- get_pred1s(out="sev.or.inte", bio="CD163", age=25, serotype="Others", dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+dat_mg8 <- get_pred1s(out="sev.or.inte", bio="TREM", age=25, serotype="Others", dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+dat_mg9 <- get_pred1s(out="sev.or.inte", bio="Fer", age=25, serotype="Others", dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+dat_mg10 <- get_pred1s(out="sev.or.inte", bio="CRP", age=25, serotype="Others", dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+
+dat_p2 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10) %>%
+  mutate(serotype = "Others")
+
+# Merge data for children and adults
+vis1 <- rbind(dat_p1, dat_p2) %>% mutate(outcome = "outcome 1")
+
+# Merge data for plots
+tmp0 <- dat1 %>% filter(!is.na(Serotype)) %>% arrange(Serotype) %>% select(sev.or.inte)
+tmp <- data.frame(sev.or.inte = rep(tmp0$sev.or.inte, 20))
+  
+tmp_p1 <- vis1 %>%
+  arrange(biomarker, age) %>%
+  mutate(value1 = 2^value,
+         serotype = factor(serotype, levels=c("DENV-1", "Others")),
+         age = factor(age, levels=c("Children", "Adults"))) %>%
+  bind_cols(., tmp)
+
+vline <- tmp_p1 %>%
+  filter(yhat==0) %>%
+  select(biomarker, value, value1) %>%
+  rename(vline=value, vline1=value1)
+
+dat_p <- left_join(tmp_p1, vline, by="biomarker")
+
+# Alternative data to limit to 5th - 95th of the values
+dat_alt <- dat_p %>%
+  group_by(biomarker, model) %>%
+  mutate(up = quantile(value, .95),
+         lo = quantile(value, .05)) %>%
+  ungroup() %>%
+  mutate(is.outlier = value<lo | value>up | value<0,
+         value = ifelse(is.outlier, NA, value),
+         value1 = ifelse(is.outlier, NA, value1),
+         yhat = ifelse(is.outlier, NA, yhat),
+         lower = ifelse(is.outlier, NA, lower),
+         upper = ifelse(is.outlier, NA, upper))
+
+dat_1_5 <- dat_alt %>% 
+  filter(biomarker %in% c("VCAM", "SDC", "Ang", "IL8", "IP10")) %>%
+  mutate(biomarker = factor(biomarker, levels=c("VCAM", "SDC", "Ang", "IL8", "IP10")))
+
+dat_6_10 <- dat_alt %>% 
+  filter(biomarker %in% c("IL1RA", "CD163", "TREM", "Fer", "CRP")) %>%
+  mutate(biomarker = factor(biomarker, levels=c("IL1RA", "CD163", "TREM", "Fer", "CRP")))
+
+# Modify facets' scales
+#require(facetscales)
+
+xVCAM <- c(1,4,15,60,250,1000,4000)
+xSDC <- c(1400,2000,2800,4000,5600)
+xAng <- c(50,100,250,500,1000,2000)
+xIL8 <- c(5,7,10,14,20,28,40)
+xIP10 <- c(25,100,400,1600,6400)
+xIL1RA <- c(1000,2000,4000,8000,16000)
+xCD163 <- c(75,150,300,600)
+xTREM <- c(35,50,70,100,140,200)
+xFer <- c(50,100,200,400,800)
+xCRP <- c(2.5,5,10,20,40,80)
+
+scales_x <- list(
+  `VCAM` = scale_x_continuous(breaks = log2(xVCAM), labels = xVCAM),
+  `SDC` = scale_x_continuous(breaks = log2(xSDC), labels = xSDC),
+  `Ang` = scale_x_continuous(breaks = log2(xAng), labels = xAng), 
+  `IL8` = scale_x_continuous(breaks = log2(xIL8), labels = xIL8), 
+  `IP10` = scale_x_continuous(breaks = log2(xIP10), labels = xIP10), 
+  `IL1RA` = scale_x_continuous(breaks = log2(xIL1RA), labels = xIL1RA), 
+  `CD163` = scale_x_continuous(breaks = log2(xCD163), labels = xCD163), 
+  `TREM` = scale_x_continuous(breaks = log2(xTREM), labels = xTREM), 
+  `Fer` = scale_x_continuous(breaks = log2(xFer), labels = xFer), 
+  `CRP` = scale_x_continuous(breaks = log2(xCRP), labels = xCRP)
+)
+
+ybreak1 <- c(.125, .25, .5, 1, 2, 4, 8)
+ybreak2 <- c(.125, .25, .5, 1, 2, 4)
+
+scales_y1 <- list(
+  `Children` = scale_y_continuous(limits = c(log(.124), log(8.01)), breaks = log(ybreak1), labels = ybreak1),
+  `Adults` = scale_y_continuous(limits = c(log(.124), log(8.01)), breaks = log(ybreak1), labels = ybreak1)
+)
+
+scales_y2 <- list(
+  `Children` = scale_y_continuous(limits = c(log(.124), log(4.01)), breaks = log(ybreak2), labels = ybreak2),
+  `Adults` = scale_y_continuous(limits = c(log(.124), log(4.01)), breaks = log(ybreak2), labels = ybreak2)
+)
+
+# Set facets' names
+age <- c(`Children` = "Children",
+         `Adults` = "Adults")
+
+biomarkers <- c(`VCAM` = "VCAM-1 (ng/ml)",
+                `SDC`= "SDC-1 (pg/ml)",
+                `Ang` = "Ang-2 (pg/ml)",
+                `IL8` = "IL-8 (pg/ml)",
+                `IP10` = "IP-10 (pg/ml)",
+                `IL1RA` = "IL-1RA (pg/ml)",
+                `CD163` = "sCD163 (ng/ml)",
+                `TREM` = "sTREM-1 (pg/ml)",
+                `Fer` = "Ferritin (ng/ml)",
+                `CRP` = "CRP (mg/l)")
+
+# Plot for the first 5 biomarkers
+p.1.5 <- ggplot(dat_1_5, aes(x=value)) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=serotype), alpha=.15) +
+  geom_vline(aes(xintercept=vline), color="black", linetype="dashed", alpha=.4) +
+  geom_hline(yintercept=0, color="black", linetype="dashed", alpha=.4) +
+  geom_line(aes(y=yhat, color=serotype), size=.5, alpha=.7) +
+  geom_rug(data=filter(dat_1_5, age=="Children" & sev.or.inte==0 & serotype=="DENV-1"), sides="b", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_1_5, age=="Children" & sev.or.inte==1 & serotype=="DENV-1"), sides="t", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_1_5, age=="Adults" & sev.or.inte==0 & serotype=="Others"), sides="b", alpha=.2, color="blue") +
+  geom_rug(data=filter(dat_1_5, age=="Adults" & sev.or.inte==1 & serotype=="Others"), sides="t", alpha=.2, color="blue") +
+  scale_color_manual(values=c("red","blue"), labels=c("DENV-1","Others")) +
+  scale_fill_manual(values=c("red","blue"), labels=c("DENV-1","Others")) +
+  ylab("Odds ratio") +
+  theme(legend.position="top", legend.title=element_blank(), axis.title.x=element_blank(), axis.text.x=element_text(angle=45)) +
+  facet_grid_sc(cols=vars(biomarker), rows=vars(age), 
+                scales=list(x=scales_x, y=scales_y1),
+                labeller = as_labeller(c(age, biomarkers)))
+
+# Plot for the last 5 biomarkers
+p.6.10 <- ggplot(dat_6_10, aes(x=value)) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=serotype), alpha=.15) +
+  geom_vline(aes(xintercept=vline), color="black", linetype="dashed", alpha=.4) +
+  geom_hline(yintercept=0, color="black", linetype="dashed", alpha=.4) +
+  geom_line(aes(y=yhat, color=serotype), size=.5, alpha=.7) +
+  geom_rug(data=filter(dat_6_10, age=="Children" & sev.or.inte==0 & serotype=="DENV-1"), sides="b", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_6_10, age=="Children" & sev.or.inte==1 & serotype=="DENV-1"), sides="t", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_6_10, age=="Adults" & sev.or.inte==0 & serotype=="Others"), sides="b", alpha=.2, color="blue") +
+  geom_rug(data=filter(dat_6_10, age=="Adults" & sev.or.inte==1 & serotype=="Others"), sides="t", alpha=.2, color="blue") +
+  scale_color_manual(values=c("red","blue"), labels=c("DENV-1","Others")) +
+  scale_fill_manual(values=c("red","blue"), labels=c("DENV-1","Others")) +
+  ylab("Odds ratio") +
+  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_text(angle=45)) +
+  facet_grid_sc(cols=vars(biomarker), rows=vars(age), 
+                scales=list(x=scales_x, y=scales_y2),
+                labeller = as_labeller(c(age, biomarkers)))
+
+# Merge plots
+p51 <- gridExtra::grid.arrange(p.1.5, p.6.10, nrow=2, heights=c(1,.86))
+#ggsave(filename="A5_fig1.pdf", p3, dpi=300, width=8.5, height=6.2)
+```
+
+###########################################################################################
+#### Appendix 5—figure 2. Results from global model for severe/moderate dengue with the interaction with serotype.
+```{r fig A5.2, echo=FALSE, message=FALSE, warning=FALSE}
+# Set datadist for 'lrm' function [rms]
+dd <- datadist(dat1); options(datadist="dd")
+
+# For DENV-1
+dd$limits["Adjust to","Serotype"] <- "DENV-1"
+
+## For children
+dd$limits["Adjust to","Age"] <- 10
+dat_m1 <- get_pred2s(out="sev.or.inte", bio="VCAM", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+dat_m2 <- get_pred2s(out="sev.or.inte", bio="SDC", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+dat_m3 <- get_pred2s(out="sev.or.inte", bio="Ang", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+dat_m4 <- get_pred2s(out="sev.or.inte", bio="IL8", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+dat_m5 <- get_pred2s(out="sev.or.inte", bio="IP10", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+dat_m6 <- get_pred2s(out="sev.or.inte", bio="IL1RA", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+dat_m7 <- get_pred2s(out="sev.or.inte", bio="CD163", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+dat_m8 <- get_pred2s(out="sev.or.inte", bio="TREM", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+dat_m9 <- get_pred2s(out="sev.or.inte", bio="Fer", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+dat_m10 <- get_pred2s(out="sev.or.inte", bio="CRP", age=10, serotype="DENV-1", dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Children")
+
+## For adults
+dd$limits["Adjust to","Age"] <- 25
+dat_mg1 <- get_pred2s(out="sev.or.inte", bio="VCAM", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+dat_mg2 <- get_pred2s(out="sev.or.inte", bio="SDC", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+dat_mg3 <- get_pred2s(out="sev.or.inte", bio="Ang", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+dat_mg4 <- get_pred2s(out="sev.or.inte", bio="IL8", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+dat_mg5 <- get_pred2s(out="sev.or.inte", bio="IP10", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+dat_mg6 <- get_pred2s(out="sev.or.inte", bio="IL1RA", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+dat_mg7 <- get_pred2s(out="sev.or.inte", bio="CD163", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+dat_mg8 <- get_pred2s(out="sev.or.inte", bio="TREM", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+dat_mg9 <- get_pred2s(out="sev.or.inte", bio="Fer", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+dat_mg10 <- get_pred2s(out="sev.or.inte", bio="CRP", age=25, serotype="DENV-1", dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='DENV-1')) %>% mutate(age="Adults")
+
+dat_p1 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10) %>%
+  mutate(serotype = "DENV-1")
+
+# For others
+dd$limits["Adjust to","Serotype"] <- "Others"
+
+## For children
+dd$limits["Adjust to","Age"] <- 10
+dat_m1 <- get_pred2s(out="sev.or.inte", bio="VCAM", age=10, serotype="Others", dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+dat_m2 <- get_pred2s(out="sev.or.inte", bio="SDC", age=10, serotype="Others", dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+dat_m3 <- get_pred2s(out="sev.or.inte", bio="Ang", age=10, serotype="Others", dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+dat_m4 <- get_pred2s(out="sev.or.inte", bio="IL8", age=10, serotype="Others", dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+dat_m5 <- get_pred2s(out="sev.or.inte", bio="IP10", age=10, serotype="Others", dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+dat_m6 <- get_pred2s(out="sev.or.inte", bio="IL1RA", age=10, serotype="Others", dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+dat_m7 <- get_pred2s(out="sev.or.inte", bio="CD163", age=10, serotype="Others", dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+dat_m8 <- get_pred2s(out="sev.or.inte", bio="TREM", age=10, serotype="Others", dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+dat_m9 <- get_pred2s(out="sev.or.inte", bio="Fer", age=10, serotype="Others", dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+dat_m10 <- get_pred2s(out="sev.or.inte", bio="CRP", age=10, serotype="Others", dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Children")
+
+## For adults
+dd$limits["Adjust to","Age"] <- 25
+dat_mg1 <- get_pred2s(out="sev.or.inte", bio="VCAM", age=25, serotype="Others", dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+dat_mg2 <- get_pred2s(out="sev.or.inte", bio="SDC", age=25, serotype="Others", dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+dat_mg3 <- get_pred2s(out="sev.or.inte", bio="Ang", age=25, serotype="Others", dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+dat_mg4 <- get_pred2s(out="sev.or.inte", bio="IL8", age=25, serotype="Others", dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+dat_mg5 <- get_pred2s(out="sev.or.inte", bio="IP10", age=25, serotype="Others", dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+dat_mg6 <- get_pred2s(out="sev.or.inte", bio="IL1RA", age=25, serotype="Others", dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+dat_mg7 <- get_pred2s(out="sev.or.inte", bio="CD163", age=25, serotype="Others", dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+dat_mg8 <- get_pred2s(out="sev.or.inte", bio="TREM", age=25, serotype="Others", dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+dat_mg9 <- get_pred2s(out="sev.or.inte", bio="Fer", age=25, serotype="Others", dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+dat_mg10 <- get_pred2s(out="sev.or.inte", bio="CRP", age=25, serotype="Others", dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$Serotype=='Others')) %>% mutate(age="Adults")
+
+dat_p2 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10) %>%
+  mutate(serotype = "Others")
+
+# Merge data for children and adults
+vis1 <- rbind(dat_p1, dat_p2) %>% mutate(outcome = "outcome 1")
+
+# Merge data for plots
+tmp0 <- dat1 %>% filter(!is.na(Serotype)) %>% arrange(Serotype) %>% select(sev.or.inte)
+tmp <- data.frame(sev.or.inte = rep(tmp0$sev.or.inte, 20))
+  
+tmp_p1 <- vis1 %>%
+  arrange(biomarker, age) %>%
+  mutate(value1 = 2^value,
+         serotype = factor(serotype, levels=c("DENV-1", "Others")),
+         age = factor(age, levels=c("Children", "Adults"))) %>%
+  bind_cols(., tmp)
+
+vline <- tmp_p1 %>%
+  filter(yhat==0) %>%
+  select(biomarker, value, value1) %>%
+  rename(vline=value, vline1=value1)
+
+dat_p <- left_join(tmp_p1, vline, by="biomarker")
+
+# Alternative data to limit to 5th - 95th of the values
+dat_alt <- dat_p %>%
+  group_by(biomarker, model) %>%
+  mutate(up = quantile(value, .95),
+         lo = quantile(value, .05)) %>%
+  ungroup() %>%
+  mutate(is.outlier = value<lo | value>up | value<0,
+         value = ifelse(is.outlier, NA, value),
+         value1 = ifelse(is.outlier, NA, value1),
+         yhat = ifelse(is.outlier, NA, yhat),
+         lower = ifelse(is.outlier, NA, lower),
+         upper = ifelse(is.outlier, NA, upper))
+
+dat_1_5 <- dat_alt %>% 
+  filter(biomarker %in% c("VCAM", "SDC", "Ang", "IL8", "IP10")) %>%
+  mutate(biomarker = factor(biomarker, levels=c("VCAM", "SDC", "Ang", "IL8", "IP10")))
+
+dat_6_10 <- dat_alt %>% 
+  filter(biomarker %in% c("IL1RA", "CD163", "TREM", "Fer", "CRP")) %>%
+  mutate(biomarker = factor(biomarker, levels=c("IL1RA", "CD163", "TREM", "Fer", "CRP")))
+
+# Modify facets' scales
+#devtools::install_github("zeehio/facetscales")
+library(facetscales)
+
+xVCAM <- c(1,4,15,60,250,1000,4000)
+xSDC <- c(1400,2000,2800,4000,5600)
+xAng <- c(50,100,250,500,1000,2000)
+xIL8 <- c(5,7,10,14,20,28,40)
+xIP10 <- c(25,100,400,1600,6400)
+xIL1RA <- c(1000,2000,4000,8000,16000)
+xCD163 <- c(75,150,300,600)
+xTREM <- c(35,50,70,100,140,200)
+xFer <- c(50,100,200,400,800)
+xCRP <- c(2.5,5,10,20,40,80)
+
+scales_x <- list(
+  `VCAM` = scale_x_continuous(breaks = log2(xVCAM), labels = xVCAM),
+  `SDC` = scale_x_continuous(breaks = log2(xSDC), labels = xSDC),
+  `Ang` = scale_x_continuous(breaks = log2(xAng), labels = xAng), 
+  `IL8` = scale_x_continuous(breaks = log2(xIL8), labels = xIL8), 
+  `IP10` = scale_x_continuous(breaks = log2(xIP10), labels = xIP10), 
+  `IL1RA` = scale_x_continuous(breaks = log2(xIL1RA), labels = xIL1RA), 
+  `CD163` = scale_x_continuous(breaks = log2(xCD163), labels = xCD163), 
+  `TREM` = scale_x_continuous(breaks = log2(xTREM), labels = xTREM), 
+  `Fer` = scale_x_continuous(breaks = log2(xFer), labels = xFer), 
+  `CRP` = scale_x_continuous(breaks = log2(xCRP), labels = xCRP)
+)
+
+ybreak1 <- c(.125, .25, .5, 1, 2, 4, 8)
+ybreak2 <- c(.125, .25, .5, 1, 2, 4)
+
+scales_y1 <- list(
+  `Children` = scale_y_continuous(limits = c(log(.124), log(8.01)), breaks = log(ybreak1), labels = ybreak1),
+  `Adults` = scale_y_continuous(limits = c(log(.124), log(8.01)), breaks = log(ybreak1), labels = ybreak1)
+)
+
+scales_y2 <- list(
+  `Children` = scale_y_continuous(limits = c(log(.124), log(4.01)), breaks = log(ybreak2), labels = ybreak2),
+  `Adults` = scale_y_continuous(limits = c(log(.124), log(4.01)), breaks = log(ybreak2), labels = ybreak2)
+)
+
+# Set facets' names
+age <- c(`Children` = "Children",
+         `Adults` = "Adults")
+
+biomarkers <- c(`VCAM` = "VCAM-1 (ng/ml)",
+                `SDC`= "SDC-1 (pg/ml)",
+                `Ang` = "Ang-2 (pg/ml)",
+                `IL8` = "IL-8 (pg/ml)",
+                `IP10` = "IP-10 (pg/ml)",
+                `IL1RA` = "IL-1RA (pg/ml)",
+                `CD163` = "sCD163 (ng/ml)",
+                `TREM` = "sTREM-1 (pg/ml)",
+                `Fer` = "Ferritin (ng/ml)",
+                `CRP` = "CRP (mg/l)")
+
+# Plot for the first 5 biomarkers
+p.1.5 <- ggplot(dat_1_5, aes(x=value)) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=serotype), alpha=.15) +
+  geom_vline(aes(xintercept=vline), color="black", linetype="dashed", alpha=.4) +
+  geom_hline(yintercept=0, color="black", linetype="dashed", alpha=.4) +
+  geom_line(aes(y=yhat, color=serotype), size=.5, alpha=.7) +
+  geom_rug(data=filter(dat_1_5, age=="Children" & sev.or.inte==0 & serotype=="DENV-1"), sides="b", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_1_5, age=="Children" & sev.or.inte==1 & serotype=="DENV-1"), sides="t", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_1_5, age=="Adults" & sev.or.inte==0 & serotype=="Others"), sides="b", alpha=.2, color="blue") +
+  geom_rug(data=filter(dat_1_5, age=="Adults" & sev.or.inte==1 & serotype=="Others"), sides="t", alpha=.2, color="blue") +
+  scale_color_manual(values=c("red","blue"), labels=c("DENV-1","Others")) +
+  scale_fill_manual(values=c("red","blue"), labels=c("DENV-1","Others")) +
+  ylab("Odds ratio") +
+  theme(legend.position="top", legend.title=element_blank(), axis.title.x=element_blank(), axis.text.x=element_text(angle=45)) +
+  facet_grid_sc(cols=vars(biomarker), rows=vars(age), 
+                scales=list(x=scales_x, y=scales_y1),
+                labeller = as_labeller(c(age, biomarkers)))
+
+# Plot for the last 5 biomarkers
+p.6.10 <- ggplot(dat_6_10, aes(x=value)) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=serotype), alpha=.15) +
+  geom_vline(aes(xintercept=vline), color="black", linetype="dashed", alpha=.4) +
+  geom_hline(yintercept=0, color="black", linetype="dashed", alpha=.4) +
+  geom_line(aes(y=yhat, color=serotype), size=.5, alpha=.7) +
+  geom_rug(data=filter(dat_6_10, age=="Children" & sev.or.inte==0 & serotype=="DENV-1"), sides="b", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_6_10, age=="Children" & sev.or.inte==1 & serotype=="DENV-1"), sides="t", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_6_10, age=="Adults" & sev.or.inte==0 & serotype=="Others"), sides="b", alpha=.2, color="blue") +
+  geom_rug(data=filter(dat_6_10, age=="Adults" & sev.or.inte==1 & serotype=="Others"), sides="t", alpha=.2, color="blue") +
+  scale_color_manual(values=c("red","blue"), labels=c("DENV-1","Others")) +
+  scale_fill_manual(values=c("red","blue"), labels=c("DENV-1","Others")) +
+  ylab("Odds ratio") +
+  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_text(angle=45)) +
+  facet_grid_sc(cols=vars(biomarker), rows=vars(age), 
+                scales=list(x=scales_x, y=scales_y2),
+                labeller = as_labeller(c(age, biomarkers)))
+
+# Merge plots
+p52 <- gridExtra::grid.arrange(p.1.5, p.6.10, nrow=2, heights=c(1,.86))
+#ggsave(filename="A5_fig2.pdf", p52, dpi=300, width=8.5, height=6.2)
+```
+
+###########################################################################################
+#### Appendix 5—table 1. Results from single models for severe/moderate dengue with the interaction with serotype.
+```{r table A5.1, echo=FALSE, message=FALSE, warning=FALSE}
+# Set datadist for 'lrm' function [rms]
+dd <- datadist(dat1); options(datadist="dd")
+
+# Get ORs and 95% CIs
+tmp1 <- data.frame(
+  sort1 = rep(c(1:10), 2),
+  sort2 = c(rep(2,10), rep(3,10)),
+  bio = rep(c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP"), 2),
+  ref1 = c(ref0-1, ref0),
+  ref2 = c(ref0, ref0+1)
+) %>%
+  arrange(sort1, sort2) %>%
+  group_by(sort1, sort2) %>%
+  do(cbind(.,
+           # DENV-1 - children
+           or1c = get_est1s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=10, serotype=1, dat=dat1),
+           lo1c = get_est1s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=10, serotype=1, dat=dat1),
+           up1c = get_est1s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=10, serotype=1, dat=dat1),
+           # Others - children
+           or1a = get_est1s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=10, serotype=2, dat=dat1),
+           lo1a = get_est1s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=10, serotype=2, dat=dat1),
+           up1a = get_est1s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=10, serotype=2, dat=dat1),
+           # DENV-1 - adults
+           or2c = get_est1s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=25, serotype=1, dat=dat1),
+           lo2c = get_est1s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=25, serotype=1, dat=dat1),
+           up2c = get_est1s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=25, serotype=1, dat=dat1),
+           # Others - adults
+           or2a = get_est1s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=25, serotype=2, dat=dat1),
+           lo2a = get_est1s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=25, serotype=2, dat=dat1),
+           up2a = get_est1s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=25, serotype=2, dat=dat1))) %>%
+  ungroup()
+for (i in 6:17) {tmp1[[i]] <- sprintf("%.2f", round(tmp1[[i]],2))}
+
+# Get p-values
+tmp2 <- data.frame(
+  sort1 = c(1:10),
+  sort2 = rep(1,10),
+  bio = c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP")
+) %>%
+  group_by(sort1) %>%
+  do(cbind(.,
+           p.s1 = get_est1s(out="sev.or.inte", bio=.$bio, est="p", dat=dat1),
+           p.s1_int = get_est1s(out="sev.or.inte", bio=.$bio, est="p int", dat=dat1),
+           p.s1_int_age = get_est1s(out="sev.or.inte", bio=.$bio, est="p int age", dat=dat1),
+           p.s1_int_serotype = get_est1s(out="sev.or.inte", bio=.$bio, est="p int serotype", dat=dat1))) %>%
+  ungroup()
+for (i in 4:7) {tmp2[[i]] <- ifelse(tmp2[[i]]<0.001, "<0.001", sprintf("%.3f", round(tmp2[[i]],3)))}  
+
+# Combine results
+res1 <- bind_rows(tmp1, tmp2) %>%
+  arrange(sort1, sort2) %>%
+  mutate(bio = ifelse(is.na(ref1), as.character(bio),
+                      ifelse(bio!="Vir", paste(" -", round(2^ref2,0), "vs", round(2^ref1,0), sep=" "), paste(" -", round(10^ref2,0), "vs", round(10^ref1,0), sep=" "))),
+         or.sc1 = ifelse(is.na(lo1c), NA, paste(or1c, " (", lo1c, "-", up1c, ")", sep="")),
+         or.sa1 = ifelse(is.na(lo1a), NA, paste(or1a, " (", lo1a, "-", up1a, ")", sep="")),
+         or.sc2 = ifelse(is.na(lo2c), NA, paste(or2c, " (", lo2c, "-", up2c, ")", sep="")),
+         or.sa2 = ifelse(is.na(lo2a), NA, paste(or2a, " (", lo2a, "-", up2a, ")", sep=""))) %>%
+  select(bio, or.sc1, or.sa1, or.sc2, or.sa2, p.s1, p.s1_int, p.s1_int_age, p.s1_int_serotype)
+
+names(res1) <- c("", "OR (children - DENV-1)", "OR (children - others)", "OR (adults - DENV-1)", "OR (adults - others)",
+                 "P overall", "P overall interaction", "P interaction with age", "P interaction with serotype")
+
+# Report results
+knitr::kable(res1)
+```
+
+###########################################################################################
+#### Appendix 5—table 2. Results from global model for severe/moderate dengue with the interaction with serotype.
+```{r table A5.2, echo=FALSE, message=FALSE, warning=FALSE}
+# Set datadist for 'lrm' function [rms]
+dd <- datadist(dat1); options(datadist="dd")
+
+# Get ORs and 95% CIs
+tmp1 <- data.frame(
+  sort1 = rep(c(1:10), 2),
+  sort2 = c(rep(2,10), rep(3,10)),
+  bio = rep(c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP"), 2),
+  ref1 = c(ref0-1, ref0),
+  ref2 = c(ref0, ref0+1)
+) %>%
+  arrange(sort1, sort2) %>%
+  group_by(sort1, sort2) %>%
+  do(cbind(.,
+           # DENV-1 - children
+           or1c = get_est2s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=10, serotype=1, dat=dat1),
+           lo1c = get_est2s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=10, serotype=1, dat=dat1),
+           up1c = get_est2s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=10, serotype=1, dat=dat1),
+           # Others - children
+           or1a = get_est2s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=10, serotype=2, dat=dat1),
+           lo1a = get_est2s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=10, serotype=2, dat=dat1),
+           up1a = get_est2s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=10, serotype=2, dat=dat1),
+           # DENV-1 - adults
+           or2c = get_est2s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=25, serotype=1, dat=dat1),
+           lo2c = get_est2s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=25, serotype=1, dat=dat1),
+           up2c = get_est2s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=25, serotype=1, dat=dat1),
+           # Others - adults
+           or2a = get_est2s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=25, serotype=2, dat=dat1),
+           lo2a = get_est2s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=25, serotype=2, dat=dat1),
+           up2a = get_est2s(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=25, serotype=2, dat=dat1))) %>%
+  ungroup()
+for (i in 6:17) {tmp1[[i]] <- sprintf("%.2f", round(tmp1[[i]],2))}
+
+# Get p-values
+tmp2 <- data.frame(
+  sort1 = c(1:10),
+  sort2 = rep(1,10),
+  bio = c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP")
+) %>%
+  group_by(sort1) %>%
+  do(cbind(.,
+           p.s2 = get_est2s(out="sev.or.inte", bio=.$bio, est="p", dat=dat1),
+           p.s2_int = get_est2s(out="sev.or.inte", bio=.$bio, est="p int", dat=dat1),
+           p.s2_int_age = get_est2s(out="sev.or.inte", bio=.$bio, est="p int age", dat=dat1),
+           p.s2_int_serotype = get_est2s(out="sev.or.inte", bio=.$bio, est="p int serotype", dat=dat1))) %>%
+  ungroup()
+for (i in 4:7) {tmp2[[i]] <- ifelse(tmp2[[i]]<0.001, "<0.001", sprintf("%.3f", round(tmp2[[i]],3)))}  
+
+# Combine results
+res2 <- bind_rows(tmp1, tmp2) %>%
+  arrange(sort1, sort2) %>%
+  mutate(bio = ifelse(is.na(ref1), as.character(bio),
+                      ifelse(bio!="Vir", paste(" -", round(2^ref2,0), "vs", round(2^ref1,0), sep=" "), paste(" -", round(10^ref2,0), "vs", round(10^ref1,0), sep=" "))),
+         or.sc1 = ifelse(is.na(lo1c), NA, paste(or1c, " (", lo1c, "-", up1c, ")", sep="")),
+         or.sa1 = ifelse(is.na(lo1a), NA, paste(or1a, " (", lo1a, "-", up1a, ")", sep="")),
+         or.sc2 = ifelse(is.na(lo2c), NA, paste(or2c, " (", lo2c, "-", up2c, ")", sep="")),
+         or.sa2 = ifelse(is.na(lo2a), NA, paste(or2a, " (", lo2a, "-", up2a, ")", sep=""))) %>%
+  select(bio, or.sc1, or.sa1, or.sc2, or.sa2, p.s2, p.s2_int, p.s2_int_age, p.s2_int_serotype)
+
+names(res2) <- c("", "OR (children - DENV-1)", "OR (children - others)", "OR (adults - DENV-1)", "OR (adults - others)",
+                 "P overall", "P overall interaction", "P interaction with age", "P interaction with serotype")
+
+# Report results
+knitr::kable(res2)
+```
+
+###########################################################################################
+#### Appendix 6—figure 1. Results from models for severe dengue endpoint.
+```{r fig A6.1, echo=FALSE, message=FALSE, warning=FALSE}
+# Set datadist for 'lrm' function [rms]
+dd <- datadist(dat1); options(datadist="dd")
+
+# For children
+dd$limits["Adjust to","Age"] <- 10
+
+dat_m1 <- get_pred1(out="sev.only", bio="VCAM", age=10, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m2 <- get_pred1(out="sev.only", bio="SDC", age=10, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m3 <- get_pred1(out="sev.only", bio="Ang", age=10, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m4 <- get_pred1(out="sev.only", bio="IL8", age=10, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m5 <- get_pred1(out="sev.only", bio="IP10", age=10, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m6 <- get_pred1(out="sev.only", bio="IL1RA", age=10, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m7 <- get_pred1(out="sev.only", bio="CD163", age=10, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m8 <- get_pred1(out="sev.only", bio="TREM", age=10, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m9 <- get_pred1(out="sev.only", bio="Fer", age=10, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m10 <- get_pred1(out="sev.only", bio="CRP", age=10, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+
+dat_mg1 <- get_pred2(out="sev.only", bio="VCAM", age=10, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg2 <- get_pred2(out="sev.only", bio="SDC", age=10, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg3 <- get_pred2(out="sev.only", bio="Ang", age=10, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg4 <- get_pred2(out="sev.only", bio="IL8", age=10, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg5 <- get_pred2(out="sev.only", bio="IP10", age=10, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg6 <- get_pred2(out="sev.only", bio="IL1RA", age=10, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg7 <- get_pred2(out="sev.only", bio="CD163", age=10, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg8 <- get_pred2(out="sev.only", bio="TREM", age=10, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg9 <- get_pred2(out="sev.only", bio="Fer", age=10, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg10 <- get_pred2(out="sev.only", bio="CRP", age=10, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+
+dat_p1 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10) %>%
+  mutate(age = "10 years")
+
+# For adults
+dd$limits["Adjust to","Age"] <- 25
+
+dat_m1 <- get_pred1(out="sev.only", bio="VCAM", age=25, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m2 <- get_pred1(out="sev.only", bio="SDC", age=25, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m3 <- get_pred1(out="sev.only", bio="Ang", age=25, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m4 <- get_pred1(out="sev.only", bio="IL8", age=25, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m5 <- get_pred1(out="sev.only", bio="IP10", age=25, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m6 <- get_pred1(out="sev.only", bio="IL1RA", age=25, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m7 <- get_pred1(out="sev.only", bio="CD163", age=25, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m8 <- get_pred1(out="sev.only", bio="TREM", age=25, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m9 <- get_pred1(out="sev.only", bio="Fer", age=25, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m10 <- get_pred1(out="sev.only", bio="CRP", age=25, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+
+dat_mg1 <- get_pred2(out="sev.only", bio="VCAM", age=25, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg2 <- get_pred2(out="sev.only", bio="SDC", age=25, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg3 <- get_pred2(out="sev.only", bio="Ang", age=25, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg4 <- get_pred2(out="sev.only", bio="IL8", age=25, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg5 <- get_pred2(out="sev.only", bio="IP10", age=25, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg6 <- get_pred2(out="sev.only", bio="IL1RA", age=25, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg7 <- get_pred2(out="sev.only", bio="CD163", age=25, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg8 <- get_pred2(out="sev.only", bio="TREM", age=25, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg9 <- get_pred2(out="sev.only", bio="Fer", age=25, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg10 <- get_pred2(out="sev.only", bio="CRP", age=25, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+
+dat_p2 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10) %>%
+  mutate(age = "25 years")
+
+# Merge results for children and adults
+vis2 <- rbind(dat_p1, dat_p2) %>%
+  mutate(yhat = ifelse(yhat>log(32), NA, ifelse(yhat<log(1/32), NA, yhat)),
+         lower = ifelse(lower>log(32), log(32), ifelse(lower<log(1/32), log(1/32), lower)),
+         upper = ifelse(upper>log(32), log(32), ifelse(upper<log(1/32), log(1/32), upper)),
+         outcome = "outcome 2")
+
+# Merge data for plots
+tmp0 <- dat %>% arrange(age15) %>% select(sev.only)
+tmp <- data.frame(sev.only = rep(tmp0$sev.only, 20))
+
+tmp_p1 <- vis2 %>%
+  mutate(value1 = 2^value,
+         age = factor(age, levels=c("10 years", "25 years")),
+         gr = ifelse(model=="Single model" & age=="10 years", 1,
+                     ifelse(model=="Single model" & age=="25 years", 2,
+                            ifelse(model=="Global model" & age=="10 years", 3, 4))),
+         gr = factor(gr, levels=c(1:4), labels=c("Single children", "Single adults", "Global children", "Global adults")),
+         model = factor(model, levels=c("Single model", "Global model"))) %>%
+  bind_cols(., tmp)
+
+vline <- tmp_p1 %>%
+  filter(model=="Single model") %>%
+  filter(yhat==0) %>%
+  select(biomarker, value, value1) %>%
+  rename(vline=value, vline1=value1)
+
+dat_p <- left_join(tmp_p1, vline, by="biomarker")
+
+# Alternative data to limit to 5th - 95th of the values
+dat_alt <- dat_p %>%
+  group_by(biomarker, model) %>%
+  mutate(up = quantile(value, .95),
+         lo = quantile(value, .05)) %>%
+  ungroup() %>%
+  mutate(is.outlier = value<lo | value>up | value<0,
+         value = ifelse(is.outlier, NA, value),
+         value1 = ifelse(is.outlier, NA, value1),
+         yhat = ifelse(is.outlier, NA, yhat),
+         lower = ifelse(is.outlier, NA, lower),
+         upper = ifelse(is.outlier, NA, upper))
+
+dat_1_5 <- dat_alt %>% 
+  filter(biomarker %in% c("VCAM", "SDC", "Ang", "IL8", "IP10")) %>%
+  mutate(biomarker = factor(biomarker, levels=c("VCAM", "SDC", "Ang", "IL8", "IP10")))
+
+dat_6_10 <- dat_alt %>% 
+  filter(biomarker %in% c("IL1RA", "CD163", "TREM", "Fer", "CRP")) %>%
+  mutate(biomarker = factor(biomarker, levels=c("IL1RA", "CD163", "TREM", "Fer", "CRP")))
+
+# Modify facets' scales
+#library(facetscales)
+
+xVCAM <- c(1,4,15,60,250,1000,4000)
+xSDC <- c(1400,2000,2800,4000,5600)
+xAng <- c(50,100,250,500,1000,2000)
+xIL8 <- c(5,7,10,14,20,28,40)
+xIP10 <- c(25,100,400,1600,6400)
+xIL1RA <- c(1000,2000,4000,8000,16000)
+xCD163 <- c(75,150,300,600)
+xTREM <- c(35,50,70,100,140,200)
+xFer <- c(50,100,200,400,800)
+xCRP <- c(2.5,5,10,20,40,80)
+
+scales_x <- list(
+  `VCAM` = scale_x_continuous(breaks = log2(xVCAM), labels = xVCAM),
+  `SDC` = scale_x_continuous(breaks = log2(xSDC), labels = xSDC),
+  `Ang` = scale_x_continuous(breaks = log2(xAng), labels = xAng), 
+  `IL8` = scale_x_continuous(breaks = log2(xIL8), labels = xIL8), 
+  `IP10` = scale_x_continuous(breaks = log2(xIP10), labels = xIP10), 
+  `IL1RA` = scale_x_continuous(breaks = log2(xIL1RA), labels = xIL1RA), 
+  `CD163` = scale_x_continuous(breaks = log2(xCD163), labels = xCD163), 
+  `TREM` = scale_x_continuous(breaks = log2(xTREM), labels = xTREM), 
+  `Fer` = scale_x_continuous(breaks = log2(xFer), labels = xFer), 
+  `CRP` = scale_x_continuous(breaks = log2(xCRP), labels = xCRP)
+)
+
+ybreak1 <- c(.0625,.125, .25, .5, 1, 2, 4, 8, 16)
+ybreak2 <- c(.0625,.125, .25, .5, 1, 2, 4, 8, 16)
+
+scales_y1 <- list(
+  `Single model` = scale_y_continuous(limits = c(log(.0624), log(16.01)), breaks = log(ybreak1), labels = ybreak1),
+  `Global model` = scale_y_continuous(limits = c(log(.0624), log(16.01)), breaks = log(ybreak1), labels = ybreak1)
+)
+
+scales_y2 <- list(
+  `Single model` = scale_y_continuous(limits = c(log(.0624), log(16.01)), breaks = log(ybreak2), labels = ybreak2),
+  `Global model` = scale_y_continuous(limits = c(log(.0624), log(16.01)), breaks = log(ybreak2), labels = ybreak2)
+)
+
+# Set facets' names
+models <- c(`Single model` = "Single model",
+            `Global model` = "Global model")
+
+biomarkers <- c(`VCAM` = "VCAM-1 (ng/ml)",
+                `SDC`= "SDC-1 (pg/ml)",
+                `Ang` = "Ang-2 (pg/ml)",
+                `IL8` = "IL-8 (pg/ml)",
+                `IP10` = "IP-10 (pg/ml)",
+                `IL1RA` = "IL-1RA (pg/ml)",
+                `CD163` = "sCD163 (ng/ml)",
+                `TREM` = "sTREM-1 (pg/ml)",
+                `Fer` = "Ferritin (ng/ml)",
+                `CRP` = "CRP (mg/l)")
+
+# Plot for the first 5 biomarkers
+p.1.5 <- ggplot(dat_1_5, aes(x=value)) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=age), alpha=.15) +
+  geom_vline(aes(xintercept=vline), color="black", linetype="dashed", alpha=.4) +
+  geom_hline(yintercept=0, color="black", linetype="dashed", alpha=.4) +
+  geom_line(aes(y=yhat, color=age), size=.5, alpha=.7) +
+  geom_rug(data=filter(dat_1_5, model=="Single model" & sev.only==0 & age=="10 years"), sides="b", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_1_5, model=="Single model" & sev.only==1 & age=="10 years"), sides="t", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_1_5, model=="Global model" & sev.only==0 & age=="25 years"), sides="b", alpha=.2, color="blue") +
+  geom_rug(data=filter(dat_1_5, model=="Global model" & sev.only==1 & age=="25 years"), sides="t", alpha=.2, color="blue") +
+  scale_color_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  scale_fill_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  ylab("Odds ratio") +
+  theme(legend.position="top", legend.title=element_blank(), axis.title.x=element_blank(), axis.text.x=element_text(angle=45)) +
+  facet_grid_sc(cols=vars(biomarker), rows=vars(model), 
+                scales=list(x=scales_x, y=scales_y1),
+                labeller = as_labeller(c(models, biomarkers)))
+
+# Plot for the last 5 biomarkers
+p.6.10 <- ggplot(dat_6_10, aes(x=value)) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=age), alpha=.15) +
+  geom_vline(aes(xintercept=vline), color="black", linetype="dashed", alpha=.4) +
+  geom_hline(yintercept=0, color="black", linetype="dashed", alpha=.4) +
+  geom_line(aes(y=yhat, color=age), size=.5, alpha=.7) +
+  geom_rug(data=filter(dat_6_10, model=="Single model" & sev.only==0 & age=="10 years"), sides="b", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_6_10, model=="Single model" & sev.only==1 & age=="10 years"), sides="t", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_6_10, model=="Global model" & sev.only==0 & age=="25 years"), sides="b", alpha=.2, color="blue") +
+  geom_rug(data=filter(dat_6_10, model=="Global model" & sev.only==1 & age=="25 years"), sides="t", alpha=.2, color="blue") +
+  scale_color_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  scale_fill_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  ylab("Odds ratio") +
+  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_text(angle=45)) +
+  facet_grid_sc(cols=vars(biomarker), rows=vars(model), 
+                scales=list(x=scales_x, y=scales_y2),
+                labeller = as_labeller(c(models, biomarkers)))
+
+# Merge plots
+p61 <- gridExtra::grid.arrange(p.1.5, p.6.10, nrow=2, heights=c(1,.85))
+#ggsave(filename="A6_fig1.pdf", p61, width=8.5, height=6.2)
+```
+
+###########################################################################################
+#### Appendix 6—figure 2. Results from models for severe dengue or dengue with warning signs endpoint.
+```{r fig A6.2, echo=FALSE, message=FALSE, warning=FALSE}
+# Set datadist for 'lrm' function [rms]
+dd <- datadist(dat1); options(datadist="dd")
+
+# For children
+dd$limits["Adjust to","Age"] <- 10
+
+dat_m1 <- get_pred1(out="sev.or.ws", bio="VCAM", age=10, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m2 <- get_pred1(out="sev.or.ws", bio="SDC", age=10, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m3 <- get_pred1(out="sev.or.ws", bio="Ang", age=10, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m4 <- get_pred1(out="sev.or.ws", bio="IL8", age=10, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m5 <- get_pred1(out="sev.or.ws", bio="IP10", age=10, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m6 <- get_pred1(out="sev.or.ws", bio="IL1RA", age=10, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m7 <- get_pred1(out="sev.or.ws", bio="CD163", age=10, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m8 <- get_pred1(out="sev.or.ws", bio="TREM", age=10, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m9 <- get_pred1(out="sev.or.ws", bio="Fer", age=10, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m10 <- get_pred1(out="sev.or.ws", bio="CRP", age=10, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+
+dat_mg1 <- get_pred2(out="sev.or.ws", bio="VCAM", age=10, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg2 <- get_pred2(out="sev.or.ws", bio="SDC", age=10, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg3 <- get_pred2(out="sev.or.ws", bio="Ang", age=10, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg4 <- get_pred2(out="sev.or.ws", bio="IL8", age=10, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg5 <- get_pred2(out="sev.or.ws", bio="IP10", age=10, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg6 <- get_pred2(out="sev.or.ws", bio="IL1RA", age=10, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg7 <- get_pred2(out="sev.or.ws", bio="CD163", age=10, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg8 <- get_pred2(out="sev.or.ws", bio="TREM", age=10, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg9 <- get_pred2(out="sev.or.ws", bio="Fer", age=10, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg10 <- get_pred2(out="sev.or.ws", bio="CRP", age=10, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+
+dat_p1 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10) %>%
+  mutate(age = "10 years")
+
+# For adults
+dd$limits["Adjust to","Age"] <- 25
+
+dat_m1 <- get_pred1(out="sev.or.ws", bio="VCAM", age=25, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m2 <- get_pred1(out="sev.or.ws", bio="SDC", age=25, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m3 <- get_pred1(out="sev.or.ws", bio="Ang", age=25, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m4 <- get_pred1(out="sev.or.ws", bio="IL8", age=25, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m5 <- get_pred1(out="sev.or.ws", bio="IP10", age=25, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m6 <- get_pred1(out="sev.or.ws", bio="IL1RA", age=25, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m7 <- get_pred1(out="sev.or.ws", bio="CD163", age=25, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m8 <- get_pred1(out="sev.or.ws", bio="TREM", age=25, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m9 <- get_pred1(out="sev.or.ws", bio="Fer", age=25, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m10 <- get_pred1(out="sev.or.ws", bio="CRP", age=25, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+
+dat_mg1 <- get_pred2(out="sev.or.ws", bio="VCAM", age=25, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg2 <- get_pred2(out="sev.or.ws", bio="SDC", age=25, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg3 <- get_pred2(out="sev.or.ws", bio="Ang", age=25, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg4 <- get_pred2(out="sev.or.ws", bio="IL8", age=25, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg5 <- get_pred2(out="sev.or.ws", bio="IP10", age=25, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg6 <- get_pred2(out="sev.or.ws", bio="IL1RA", age=25, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg7 <- get_pred2(out="sev.or.ws", bio="CD163", age=25, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg8 <- get_pred2(out="sev.or.ws", bio="TREM", age=25, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg9 <- get_pred2(out="sev.or.ws", bio="Fer", age=25, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg10 <- get_pred2(out="sev.or.ws", bio="CRP", age=25, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+
+dat_p2 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10) %>%
+  mutate(age = "25 years")
+
+# Merge data for children and adults
+vis3 <- rbind(dat_p1, dat_p2) %>% mutate(outcome = "outcome 3")
+
+# Merge data for plots
+tmp0 <- dat %>% arrange(age15) %>% select(sev.or.ws)
+tmp <- data.frame(sev.or.ws = rep(tmp0$sev.or.ws, 20))
+
+tmp_p1 <- vis3 %>%
+  mutate(value1 = 2^value,
+         age = factor(age, levels=c("10 years", "25 years")),
+         gr = ifelse(model=="Single model" & age=="10 years", 1,
+                     ifelse(model=="Single model" & age=="25 years", 2,
+                            ifelse(model=="Global model" & age=="10 years", 3, 4))),
+         gr = factor(gr, levels=c(1:4), labels=c("Single children", "Single adults", "Global children", "Global adults")),
+         model = factor(model, levels=c("Single model", "Global model"))) %>%
+  bind_cols(., tmp)
+
+vline <- tmp_p1 %>%
+  filter(model=="Single model") %>%
+  filter(yhat==0) %>%
+  select(biomarker, value, value1) %>%
+  rename(vline=value, vline1=value1)
+
+dat_p <- left_join(tmp_p1, vline, by="biomarker")
+
+# Alternative data to limit to 5th - 95th of the values
+dat_alt <- dat_p %>%
+  group_by(biomarker, model) %>%
+  mutate(up = quantile(value, .95),
+         lo = quantile(value, .05)) %>%
+  ungroup() %>%
+  mutate(is.outlier = value<lo | value>up | value<0,
+         value = ifelse(is.outlier, NA, value),
+         value1 = ifelse(is.outlier, NA, value1),
+         yhat = ifelse(is.outlier, NA, yhat),
+         lower = ifelse(is.outlier, NA, lower),
+         upper = ifelse(is.outlier, NA, upper))
+
+dat_1_5 <- dat_alt %>% 
+  filter(biomarker %in% c("VCAM", "SDC", "Ang", "IL8", "IP10")) %>%
+  mutate(biomarker = factor(biomarker, levels=c("VCAM", "SDC", "Ang", "IL8", "IP10")))
+
+dat_6_10 <- dat_alt %>% 
+  filter(biomarker %in% c("IL1RA", "CD163", "TREM", "Fer", "CRP")) %>%
+  mutate(biomarker = factor(biomarker, levels=c("IL1RA", "CD163", "TREM", "Fer", "CRP")))
+
+# Modify facets' scales
+#library(facetscales)
+
+xVCAM <- c(1,4,15,60,250,1000,4000)
+xSDC <- c(1400,2000,2800,4000,5600)
+xAng <- c(50,100,250,500,1000,2000)
+xIL8 <- c(5,7,10,14,20,28,40)
+xIP10 <- c(25,100,400,1600,6400)
+xIL1RA <- c(1000,2000,4000,8000,16000)
+xCD163 <- c(75,150,300,600)
+xTREM <- c(35,50,70,100,140,200)
+xFer <- c(50,100,200,400,800)
+xCRP <- c(2.5,5,10,20,40,80)
+
+scales_x <- list(
+  `VCAM` = scale_x_continuous(breaks = log2(xVCAM), labels = xVCAM),
+  `SDC` = scale_x_continuous(breaks = log2(xSDC), labels = xSDC),
+  `Ang` = scale_x_continuous(breaks = log2(xAng), labels = xAng), 
+  `IL8` = scale_x_continuous(breaks = log2(xIL8), labels = xIL8), 
+  `IP10` = scale_x_continuous(breaks = log2(xIP10), labels = xIP10), 
+  `IL1RA` = scale_x_continuous(breaks = log2(xIL1RA), labels = xIL1RA), 
+  `CD163` = scale_x_continuous(breaks = log2(xCD163), labels = xCD163), 
+  `TREM` = scale_x_continuous(breaks = log2(xTREM), labels = xTREM), 
+  `Fer` = scale_x_continuous(breaks = log2(xFer), labels = xFer), 
+  `CRP` = scale_x_continuous(breaks = log2(xCRP), labels = xCRP)
+)
+
+ybreak1 <- c(.25, .5, 1, 2, 4)
+ybreak2 <- c(.25, .5, 1, 2, 4)
+
+scales_y1 <- list(
+  `Single model` = scale_y_continuous(limits = c(log(.24), log(4.01)), breaks = log(ybreak1), labels = ybreak1),
+  `Global model` = scale_y_continuous(limits = c(log(.24), log(4.01)), breaks = log(ybreak1), labels = ybreak1)
+)
+
+scales_y2 <- list(
+  `Single model` = scale_y_continuous(limits = c(log(.24), log(4.01)), breaks = log(ybreak2), labels = ybreak2),
+  `Global model` = scale_y_continuous(limits = c(log(.24), log(4.01)), breaks = log(ybreak2), labels = ybreak2)
+)
+
+# Set facets' names
+models <- c(`Single model` = "Single model",
+            `Global model` = "Global model")
+
+biomarkers <- c(`VCAM` = "VCAM-1 (ng/ml)",
+                `SDC`= "SDC-1 (pg/ml)",
+                `Ang` = "Ang-2 (pg/ml)",
+                `IL8` = "IL-8 (pg/ml)",
+                `IP10` = "IP-10 (pg/ml)",
+                `IL1RA` = "IL-1RA (pg/ml)",
+                `CD163` = "sCD163 (ng/ml)",
+                `TREM` = "sTREM-1 (pg/ml)",
+                `Fer` = "Ferritin (ng/ml)",
+                `CRP` = "CRP (mg/l)")
+
+# Plot for the first 5 biomarkers
+p.1.5 <- ggplot(dat_1_5, aes(x=value)) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=age), alpha=.15) +
+  geom_vline(aes(xintercept=vline), color="black", linetype="dashed", alpha=.4) +
+  geom_hline(yintercept=0, color="black", linetype="dashed", alpha=.4) +
+  geom_line(aes(y=yhat, color=age), size=.5, alpha=.7) +
+  geom_rug(data=filter(dat_1_5, model=="Single model" & sev.or.ws==0 & age=="10 years"), sides="b", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_1_5, model=="Single model" & sev.or.ws==1 & age=="10 years"), sides="t", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_1_5, model=="Global model" & sev.or.ws==0 & age=="25 years"), sides="b", alpha=.2, color="blue") +
+  geom_rug(data=filter(dat_1_5, model=="Global model" & sev.or.ws==1 & age=="25 years"), sides="t", alpha=.2, color="blue") +
+  scale_color_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  scale_fill_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  ylab("Odds ratio") +
+  theme(legend.position="top", legend.title=element_blank(), axis.title.x=element_blank(), axis.text.x=element_text(angle=45)) +
+  facet_grid_sc(cols=vars(biomarker), rows=vars(model), 
+                scales=list(x=scales_x, y=scales_y1),
+                labeller = as_labeller(c(models, biomarkers)))
+
+# Plot for the last 5 biomarkers
+p.6.10 <- ggplot(dat_6_10, aes(x=value)) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=age), alpha=.15) +
+  geom_vline(aes(xintercept=vline), color="black", linetype="dashed", alpha=.4) +
+  geom_hline(yintercept=0, color="black", linetype="dashed", alpha=.4) +
+  geom_line(aes(y=yhat, color=age), size=.5, alpha=.7) +
+  geom_rug(data=filter(dat_6_10, model=="Single model" & sev.or.ws==0 & age=="10 years"), sides="b", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_6_10, model=="Single model" & sev.or.ws==1 & age=="10 years"), sides="t", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_6_10, model=="Global model" & sev.or.ws==0 & age=="25 years"), sides="b", alpha=.2, color="blue") +
+  geom_rug(data=filter(dat_6_10, model=="Global model" & sev.or.ws==1 & age=="25 years"), sides="t", alpha=.2, color="blue") +
+  scale_color_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  scale_fill_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  ylab("Odds ratio") +
+  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_text(angle=45)) +
+  facet_grid_sc(cols=vars(biomarker), rows=vars(model), 
+                scales=list(x=scales_x, y=scales_y2),
+                labeller = as_labeller(c(models, biomarkers)))
+
+# Merge plots
+p62 <- gridExtra::grid.arrange(p.1.5, p.6.10, nrow=2, heights=c(1,.85))
+#ggsave(filename="A6_fig2.pdf", p62, width=8.5, height=6.2)
+```
+
+###########################################################################################
+#### Appendix 6—figure 3. Results from models for hospitalization endpoint.
+```{r fig A6.3, echo=FALSE, message=FALSE, warning=FALSE}
+# Set datadist for 'lrm' function [rms]
+dd <- datadist(dat1); options(datadist="dd")
+
+# For children
+dd$limits["Adjust to","Age"] <- 10
+
+dat_m1 <- get_pred1(out="hospital", bio="VCAM", age=10, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m2 <- get_pred1(out="hospital", bio="SDC", age=10, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m3 <- get_pred1(out="hospital", bio="Ang", age=10, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m4 <- get_pred1(out="hospital", bio="IL8", age=10, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m5 <- get_pred1(out="hospital", bio="IP10", age=10, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m6 <- get_pred1(out="hospital", bio="IL1RA", age=10, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m7 <- get_pred1(out="hospital", bio="CD163", age=10, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m8 <- get_pred1(out="hospital", bio="TREM", age=10, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m9 <- get_pred1(out="hospital", bio="Fer", age=10, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m10 <- get_pred1(out="hospital", bio="CRP", age=10, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+
+dat_mg1 <- get_pred2(out="hospital", bio="VCAM", age=10, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg2 <- get_pred2(out="hospital", bio="SDC", age=10, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg3 <- get_pred2(out="hospital", bio="Ang", age=10, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg4 <- get_pred2(out="hospital", bio="IL8", age=10, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg5 <- get_pred2(out="hospital", bio="IP10", age=10, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg6 <- get_pred2(out="hospital", bio="IL1RA", age=10, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg7 <- get_pred2(out="hospital", bio="CD163", age=10, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg8 <- get_pred2(out="hospital", bio="TREM", age=10, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg9 <- get_pred2(out="hospital", bio="Fer", age=10, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg10 <- get_pred2(out="hospital", bio="CRP", age=10, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+
+dat_p1 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10) %>%
+  mutate(age = "10 years")
+
+# For adults
+dd$limits["Adjust to","Age"] <- 25
+
+dat_m1 <- get_pred1(out="hospital", bio="VCAM", age=25, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m2 <- get_pred1(out="hospital", bio="SDC", age=25, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m3 <- get_pred1(out="hospital", bio="Ang", age=25, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m4 <- get_pred1(out="hospital", bio="IL8", age=25, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m5 <- get_pred1(out="hospital", bio="IP10", age=25, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m6 <- get_pred1(out="hospital", bio="IL1RA", age=25, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m7 <- get_pred1(out="hospital", bio="CD163", age=25, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m8 <- get_pred1(out="hospital", bio="TREM", age=25, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m9 <- get_pred1(out="hospital", bio="Fer", age=25, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m10 <- get_pred1(out="hospital", bio="CRP", age=25, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+
+dat_mg1 <- get_pred2(out="hospital", bio="VCAM", age=25, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg2 <- get_pred2(out="hospital", bio="SDC", age=25, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg3 <- get_pred2(out="hospital", bio="Ang", age=25, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg4 <- get_pred2(out="hospital", bio="IL8", age=25, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg5 <- get_pred2(out="hospital", bio="IP10", age=25, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg6 <- get_pred2(out="hospital", bio="IL1RA", age=25, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg7 <- get_pred2(out="hospital", bio="CD163", age=25, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg8 <- get_pred2(out="hospital", bio="TREM", age=25, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg9 <- get_pred2(out="hospital", bio="Fer", age=25, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg10 <- get_pred2(out="hospital", bio="CRP", age=25, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+
+dat_p2 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10) %>%
+  mutate(age = "25 years")
+
+# Merge data for children and adults
+vis4 <- rbind(dat_p1, dat_p2) %>% mutate(outcome = "outcome 4")
+
+# Merge data for plots
+tmp0 <- dat %>% arrange(age15) %>% select(hospital)
+tmp <- data.frame(hospital = rep(tmp0$hospital, 20))
+
+tmp_p1 <- vis4 %>%
+  mutate(value1 = 2^value,
+         age = factor(age, levels=c("10 years", "25 years")),
+         gr = ifelse(model=="Single model" & age=="10 years", 1,
+                     ifelse(model=="Single model" & age=="25 years", 2,
+                            ifelse(model=="Global model" & age=="10 years", 3, 4))),
+         gr = factor(gr, levels=c(1:4), labels=c("Single children", "Single adults", "Global children", "Global adults")),
+         model = factor(model, levels=c("Single model", "Global model"))) %>%
+  bind_cols(., tmp)
+
+vline <- tmp_p1 %>%
+  filter(model=="Single model") %>%
+  filter(yhat==0) %>%
+  select(biomarker, value, value1) %>%
+  rename(vline=value, vline1=value1)
+
+dat_p <- left_join(tmp_p1, vline, by="biomarker")
+
+# Alternative data to limit to 5th - 95th of the values
+dat_alt <- dat_p %>%
+  group_by(biomarker, model) %>%
+  mutate(up = quantile(value, .95),
+         lo = quantile(value, .05)) %>%
+  ungroup() %>%
+  mutate(is.outlier = value<lo | value>up | value<0,
+         value = ifelse(is.outlier, NA, value),
+         value1 = ifelse(is.outlier, NA, value1),
+         yhat = ifelse(is.outlier, NA, yhat),
+         lower = ifelse(is.outlier, NA, lower),
+         upper = ifelse(is.outlier, NA, upper))
+
+dat_1_5 <- dat_alt %>% 
+  filter(biomarker %in% c("VCAM", "SDC", "Ang", "IL8", "IP10")) %>%
+  mutate(biomarker = factor(biomarker, levels=c("VCAM", "SDC", "Ang", "IL8", "IP10")))
+
+dat_6_10 <- dat_alt %>% 
+  filter(biomarker %in% c("IL1RA", "CD163", "TREM", "Fer", "CRP")) %>%
+  mutate(biomarker = factor(biomarker, levels=c("IL1RA", "CD163", "TREM", "Fer", "CRP")))
+
+# Modify facets' scales
+#library(facetscales)
+
+xVCAM <- c(1,4,15,60,250,1000,4000)
+xSDC <- c(1400,2000,2800,4000,5600)
+xAng <- c(50,100,250,500,1000,2000)
+xIL8 <- c(5,7,10,14,20,28,40)
+xIP10 <- c(25,100,400,1600,6400)
+xIL1RA <- c(1000,2000,4000,8000,16000)
+xCD163 <- c(75,150,300,600)
+xTREM <- c(35,50,70,100,140,200)
+xFer <- c(50,100,200,400,800)
+xCRP <- c(2.5,5,10,20,40,80)
+
+scales_x <- list(
+  `VCAM` = scale_x_continuous(breaks = log2(xVCAM), labels = xVCAM),
+  `SDC` = scale_x_continuous(breaks = log2(xSDC), labels = xSDC),
+  `Ang` = scale_x_continuous(breaks = log2(xAng), labels = xAng), 
+  `IL8` = scale_x_continuous(breaks = log2(xIL8), labels = xIL8), 
+  `IP10` = scale_x_continuous(breaks = log2(xIP10), labels = xIP10), 
+  `IL1RA` = scale_x_continuous(breaks = log2(xIL1RA), labels = xIL1RA), 
+  `CD163` = scale_x_continuous(breaks = log2(xCD163), labels = xCD163), 
+  `TREM` = scale_x_continuous(breaks = log2(xTREM), labels = xTREM), 
+  `Fer` = scale_x_continuous(breaks = log2(xFer), labels = xFer), 
+  `CRP` = scale_x_continuous(breaks = log2(xCRP), labels = xCRP)
+)
+
+ybreak1 <- c(.125, .25, .5, 1, 2, 4, 8)
+ybreak2 <- c(.125, .25, .5, 1, 2, 4, 8)
+
+scales_y1 <- list(
+  `Single model` = scale_y_continuous(limits = c(log(.124), log(8.01)), breaks = log(ybreak1), labels = ybreak1),
+  `Global model` = scale_y_continuous(limits = c(log(.124), log(8.01)), breaks = log(ybreak1), labels = ybreak1)
+)
+
+scales_y2 <- list(
+  `Single model` = scale_y_continuous(limits = c(log(.124), log(8.01)), breaks = log(ybreak2), labels = ybreak2),
+  `Global model` = scale_y_continuous(limits = c(log(.124), log(8.01)), breaks = log(ybreak2), labels = ybreak2)
+)
+
+# Set facets' names
+models <- c(`Single model` = "Single model",
+            `Global model` = "Global model")
+
+biomarkers <- c(`VCAM` = "VCAM-1 (ng/ml)",
+                `SDC`= "SDC-1 (pg/ml)",
+                `Ang` = "Ang-2 (pg/ml)",
+                `IL8` = "IL-8 (pg/ml)",
+                `IP10` = "IP-10 (pg/ml)",
+                `IL1RA` = "IL-1RA (pg/ml)",
+                `CD163` = "sCD163 (ng/ml)",
+                `TREM` = "sTREM-1 (pg/ml)",
+                `Fer` = "Ferritin (ng/ml)",
+                `CRP` = "CRP (mg/l)")
+
+# Plot for the first 5 biomarkers
+p.1.5 <- ggplot(dat_1_5, aes(x=value)) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=age), alpha=.15) +
+  geom_vline(aes(xintercept=vline), color="black", linetype="dashed", alpha=.4) +
+  geom_hline(yintercept=0, color="black", linetype="dashed", alpha=.4) +
+  geom_line(aes(y=yhat, color=age), size=.5, alpha=.7) +
+  geom_rug(data=filter(dat_1_5, model=="Single model" & hospital==0 & age=="10 years"), sides="b", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_1_5, model=="Single model" & hospital==1 & age=="10 years"), sides="t", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_1_5, model=="Global model" & hospital==0 & age=="25 years"), sides="b", alpha=.2, color="blue") +
+  geom_rug(data=filter(dat_1_5, model=="Global model" & hospital==1 & age=="25 years"), sides="t", alpha=.2, color="blue") +
+  scale_color_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  scale_fill_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  ylab("Odds ratio") +
+  theme(legend.position="top", legend.title=element_blank(), axis.title.x=element_blank(), axis.text.x=element_text(angle=45)) +
+  facet_grid_sc(cols=vars(biomarker), rows=vars(model), 
+                scales=list(x=scales_x, y=scales_y1),
+                labeller = as_labeller(c(models, biomarkers)))
+
+# Plot for the last 5 biomarkers
+p.6.10 <- ggplot(dat_6_10, aes(x=value)) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=age), alpha=.15) +
+  geom_vline(aes(xintercept=vline), color="black", linetype="dashed", alpha=.4) +
+  geom_hline(yintercept=0, color="black", linetype="dashed", alpha=.4) +
+  geom_line(aes(y=yhat, color=age), size=.5, alpha=.7) +
+  geom_rug(data=filter(dat_6_10, model=="Single model" & hospital==0 & age=="10 years"), sides="b", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_6_10, model=="Single model" & hospital==1 & age=="10 years"), sides="t", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_6_10, model=="Global model" & hospital==0 & age=="25 years"), sides="b", alpha=.2, color="blue") +
+  geom_rug(data=filter(dat_6_10, model=="Global model" & hospital==1 & age=="25 years"), sides="t", alpha=.2, color="blue") +
+  scale_color_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  scale_fill_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  ylab("Odds ratio") +
+  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_text(angle=45)) +
+  facet_grid_sc(cols=vars(biomarker), rows=vars(model), 
+                scales=list(x=scales_x, y=scales_y2),
+                labeller = as_labeller(c(models, biomarkers)))
+
+# Merge plots
+p63 <- gridExtra::grid.arrange(p.1.5, p.6.10, nrow=2, heights=c(1,.85))
+#ggsave(filename="A6_fig3.pdf", p63, width=8.5, height=6.2)
+```
+
+###########################################################################################
+#### Appendix 6—table 1. Results from models for severe dengue endpoint.
+```{r table A6.1, echo=FALSE, message=FALSE, warning=FALSE}
+# Set datadist for 'lrm' function [rms]
+dd <- datadist(dat1); options(datadist="dd")
+
+# Get ORs and 95% CIs
+tmp1 <- data.frame(
+  sort1 = rep(c(1:10), 2),
+  sort2 = c(rep(2,10), rep(3,10)),
+  bio = rep(c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP"), 2),
+  ref1 = c(ref0-1, ref0),
+  ref2 = c(ref0, ref0+1)
+) %>%
+  arrange(sort1, sort2) %>%
+  group_by(sort1, sort2) %>%
+  do(cbind(.,
+           # Children - single models
+           or1c = get_est1(out="sev.only", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=10, dat=dat1),
+           lo1c = get_est1(out="sev.only", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=10, dat=dat1),
+           up1c = get_est1(out="sev.only", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=10, dat=dat1),
+           # Children - global model
+           or2c = get_est2(out="sev.only", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=10, dat=dat1),
+           lo2c = get_est2(out="sev.only", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=10, dat=dat1),
+           up2c = get_est2(out="sev.only", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=10, dat=dat1),
+           # Adults - single models
+           or1a = get_est1(out="sev.only", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=25, dat=dat1),
+           lo1a = get_est1(out="sev.only", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=25, dat=dat1),
+           up1a = get_est1(out="sev.only", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=25, dat=dat1),
+           # Adults - global model
+           or2a = get_est2(out="sev.only", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=25, dat=dat1),
+           lo2a = get_est2(out="sev.only", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=25, dat=dat1),
+           up2a = get_est2(out="sev.only", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=25, dat=dat1))) %>%
+  ungroup()
+for (i in 6:17) {tmp1[[i]] <- sprintf("%.2f", round(tmp1[[i]],2))}
+
+# Get p-values
+tmp2 <- data.frame(
+  sort1 = c(1:10),
+  sort2 = rep(1,10),
+  bio = c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP")
+) %>%
+  group_by(sort1) %>%
+  do(cbind(.,
+           p.s2 = get_est1(out="sev.only", bio=.$bio, est="p", dat=dat1),
+           p.s2_int = get_est1(out="sev.only", bio=.$bio, est="p int", dat=dat1),
+           p.g2 = get_est2(out="sev.only", bio=.$bio, est="p", dat=dat1),
+           p.g2_int = get_est2(out="sev.only", bio=.$bio, est="p int", dat=dat1))) %>%
+  ungroup()
+for (i in 4:7) {tmp2[[i]] <- ifelse(tmp2[[i]]<0.001, "<0.001", sprintf("%.3f", round(tmp2[[i]],3)))}  
+
+# Combine results
+res2 <- tmp1 %>%
+  group_by(bio) %>%
+  slice(1) %>%
+  left_join(., select(tmp2, -c(sort1, sort2)), by="bio") %>%
+  arrange(sort1) %>%
+  mutate(bio = as.character(bio),
+         or.sc2 = ifelse(is.na(lo1c), NA, paste(or1c, " (", lo1c, "-", up1c, ")", sep="")), # s: single model; c: children
+         or.gc2 = ifelse(is.na(lo2c), NA, paste(or2c, " (", lo2c, "-", up2c, ")", sep="")), # g: global model
+         or.sa2 = ifelse(is.na(lo1a), NA, paste(or1a, " (", lo1a, "-", up1a, ")", sep="")), # a: adults
+         or.ga2 = ifelse(is.na(lo2a), NA, paste(or2a, " (", lo2a, "-", up2a, ")", sep=""))) %>%
+  select(bio, or.sc2, or.sa2, p.s2, p.s2_int, or.gc2, or.ga2, p.g2, p.g2_int)
+
+names(res2) <- c("", "OR (single - children)", "OR (single - adults)", "P overall (single)", "P interaction (single)",
+                 "OR (global - children)", "OR (global - adults)", "P overall (global)", "P interaction (global)")
+
+# Report results
+knitr::kable(res2)
+```
+
+###########################################################################################
+#### Appendix 6—table 2. Results from models for severe dengue or dengue with warning signs endpoint.
+```{r table A6.2, echo=FALSE, message=FALSE, warning=FALSE}
+# Set datadist for 'lrm' function [rms]
+dd <- datadist(dat1); options(datadist="dd")
+
+# Get ORs and 95% CIs
+tmp1 <- data.frame(
+  sort1 = rep(c(1:10), 2),
+  sort2 = c(rep(2,10), rep(3,10)),
+  bio = rep(c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP"), 2),
+  ref1 = c(ref0-1, ref0),
+  ref2 = c(ref0, ref0+1)
+) %>%
+  arrange(sort1, sort2) %>%
+  group_by(sort1, sort2) %>%
+  do(cbind(.,
+           # Children - single models
+           or1c = get_est1(out="sev.or.ws", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=10, dat=dat1),
+           lo1c = get_est1(out="sev.or.ws", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=10, dat=dat1),
+           up1c = get_est1(out="sev.or.ws", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=10, dat=dat1),
+           # Children - global model
+           or2c = get_est2(out="sev.or.ws", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=10, dat=dat1),
+           lo2c = get_est2(out="sev.or.ws", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=10, dat=dat1),
+           up2c = get_est2(out="sev.or.ws", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=10, dat=dat1),
+           # Adults - single models
+           or1a = get_est1(out="sev.or.ws", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=25, dat=dat1),
+           lo1a = get_est1(out="sev.or.ws", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=25, dat=dat1),
+           up1a = get_est1(out="sev.or.ws", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=25, dat=dat1),
+           # Adults - global model
+           or2a = get_est2(out="sev.or.ws", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=25, dat=dat1),
+           lo2a = get_est2(out="sev.or.ws", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=25, dat=dat1),
+           up2a = get_est2(out="sev.or.ws", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=25, dat=dat1))) %>%
+  ungroup()
+for (i in 6:17) {tmp1[[i]] <- sprintf("%.2f", round(tmp1[[i]],2))}
+
+# Get p-values
+tmp2 <- data.frame(
+  sort1 = c(1:10),
+  sort2 = rep(1,10),
+  bio = c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP")
+) %>%
+  group_by(sort1) %>%
+  do(cbind(.,
+           p.s3 = get_est1(out="sev.or.ws", bio=.$bio, est="p", dat=dat1),
+           p.s3_int = get_est1(out="sev.or.ws", bio=.$bio, est="p int", dat=dat1),
+           p.g3 = get_est2(out="sev.or.ws", bio=.$bio, est="p", dat=dat1),
+           p.g3_int = get_est2(out="sev.or.ws", bio=.$bio, est="p int", dat=dat1))) %>%
+  ungroup()
+for (i in 4:7) {tmp2[[i]] <- ifelse(tmp2[[i]]<0.001, "<0.001", sprintf("%.3f", round(tmp2[[i]],3)))}  
+
+# Combine results
+res3 <- bind_rows(tmp1, tmp2) %>%
+  arrange(sort1, sort2) %>%
+  mutate(bio = ifelse(!is.na(ref1), paste(" -", round(2^ref2,0), "vs", round(2^ref1,0), sep=" "), as.character(bio)),
+         or.sc3 = ifelse(is.na(lo1c), NA, paste(or1c, " (", lo1c, "-", up1c, ")", sep="")), # s: single model; c: children
+         or.gc3 = ifelse(is.na(lo2c), NA, paste(or2c, " (", lo2c, "-", up2c, ")", sep="")), # g: global model
+         or.sa3 = ifelse(is.na(lo1a), NA, paste(or1a, " (", lo1a, "-", up1a, ")", sep="")), # a: adults
+         or.ga3 = ifelse(is.na(lo2a), NA, paste(or2a, " (", lo2a, "-", up2a, ")", sep=""))) %>%
+  select(bio, or.sc3, or.sa3, p.s3, p.s3_int, or.gc3, or.ga3, p.g3, p.g3_int)
+
+names(res3) <- c("", "OR (single - children)", "OR (single - adults)", "P overall (single)", "P interaction (single)",
+                 "OR (global - children)", "OR (global - adults)", "P overall (global)", "P interaction (global)")
+
+# Report results
+knitr::kable(res3)
+```
+
+###########################################################################################
+#### Appendix 6—table 3. Results from models for hospitalization endpoint.
+```{r table A6.3, echo=FALSE, message=FALSE, warning=FALSE}
+# Set datadist for 'lrm' function [rms]
+dd <- datadist(dat1); options(datadist="dd")
+
+# Get ORs and 95% CIs
+tmp1 <- data.frame(
+  sort1 = rep(c(1:10), 2),
+  sort2 = c(rep(2,10), rep(3,10)),
+  bio = rep(c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP"), 2),
+  ref1 = c(ref0-1, ref0),
+  ref2 = c(ref0, ref0+1)
+) %>%
+  arrange(sort1, sort2) %>%
+  group_by(sort1, sort2) %>%
+  do(cbind(.,
+           # Children - single models
+           or1c = get_est1(out="hospital", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=10, dat=dat1),
+           lo1c = get_est1(out="hospital", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=10, dat=dat1),
+           up1c = get_est1(out="hospital", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=10, dat=dat1),
+           # Children - global model
+           or2c = get_est2(out="hospital", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=10, dat=dat1),
+           lo2c = get_est2(out="hospital", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=10, dat=dat1),
+           up2c = get_est2(out="hospital", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=10, dat=dat1),
+           # Adults - single models
+           or1a = get_est1(out="hospital", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=25, dat=dat1),
+           lo1a = get_est1(out="hospital", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=25, dat=dat1),
+           up1a = get_est1(out="hospital", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=25, dat=dat1),
+           # Adults - global model
+           or2a = get_est2(out="hospital", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=25, dat=dat1),
+           lo2a = get_est2(out="hospital", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=25, dat=dat1),
+           up2a = get_est2(out="hospital", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=25, dat=dat1))) %>%
+  ungroup()
+for (i in 6:17) {tmp1[[i]] <- sprintf("%.2f", round(tmp1[[i]],2))}
+
+# Get p-values
+tmp2 <- data.frame(
+  sort1 = c(1:10),
+  sort2 = rep(1,10),
+  bio = c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP")
+) %>%
+  group_by(sort1) %>%
+  do(cbind(.,
+           p.s4 = get_est1(out="hospital", bio=.$bio, est="p", dat=dat1),
+           p.s4_int = get_est1(out="hospital", bio=.$bio, est="p int", dat=dat1),
+           p.g4 = get_est2(out="hospital", bio=.$bio, est="p", dat=dat1),
+           p.g4_int = get_est2(out="hospital", bio=.$bio, est="p int", dat=dat1))) %>%
+  ungroup()
+for (i in 4:7) {tmp2[[i]] <- ifelse(tmp2[[i]]<0.001, "<0.001", sprintf("%.3f", round(tmp2[[i]],3)))}  
+
+# Combine results
+res4 <- bind_rows(tmp1, tmp2) %>%
+  arrange(sort1, sort2) %>%
+  mutate(bio = ifelse(!is.na(ref1), paste(" -", round(2^ref2,0), "vs", round(2^ref1,0), sep=" "), as.character(bio)),
+         or.sc4 = ifelse(is.na(lo1c), NA, paste(or1c, " (", lo1c, "-", up1c, ")", sep="")), # s: single model; c: children
+         or.gc4 = ifelse(is.na(lo2c), NA, paste(or2c, " (", lo2c, "-", up2c, ")", sep="")), # g: global model
+         or.sa4 = ifelse(is.na(lo1a), NA, paste(or1a, " (", lo1a, "-", up1a, ")", sep="")), # a: adults
+         or.ga4 = ifelse(is.na(lo2a), NA, paste(or2a, " (", lo2a, "-", up2a, ")", sep=""))) %>%
+  select(bio, or.sc4, or.sa4, p.s4, p.s4_int, or.gc4, or.ga4, p.g4, p.g4_int)
+
+names(res4) <- c("", "OR (single - children)", "OR (single - adults)", "P overall (single)", "P interaction (single)",
+                 "OR (global - children)", "OR (global - adults)", "P overall (global)", "P interaction (global)")
+
+# Report results
+knitr::kable(res4)
+```
+
+###########################################################################################
+#### Appendix 7—table 1. Model selection frequencies for children.
+```{r table A7.1, echo=FALSE, message=FALSE, warning=FALSE}
+# EPV --------------------------------------------------------------
+pred <- c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP")
+
+# Bootstrap results ------------------------------------------------
+## The following codes were modified from Heinze G. et al (https://doi.org/10.1002/bimj.201700067)
+bootnum <- 1000
+boot_var <- matrix(0, ncol = length(pred) + 1, nrow = bootnum, dimnames = list(NULL, c(pred, "aic")))
+load("5a.RData") # Load bootstrap results
+
+# Model frequency
+group_cols <- c(colnames(data.frame(boot_var))[1:length(pred)])
+boot_modfreq <- data.frame(boot_var) %>%
+  mutate(time = 1) %>%
+  group_by_(.dots = group_cols) %>%
+  summarise(aic_median = round(median(aic),1),
+            aic_025 = round(quantile(aic, 0.025),1),
+            aic_975 = round(quantile(aic, 0.975),1),
+            count = sum(time)) %>%
+  ungroup() %>%
+  mutate(percent = count/bootnum * 100) %>%
+  arrange(desc(count)) %>%
+  slice(1:20) %>%
+  as.data.frame(.)
+
+out <- boot_modfreq
+for (i in 1:(ncol(out)-5)) {
+  out[,i] <- ifelse(out[,i]==0, NA, "+")
+}
+
+knitr::kable(out)
+```
+
+###########################################################################################
+#### Appendix 7—table 2. Model stability for children.
+```{r table A7.2, echo=FALSE, message=FALSE, warning=FALSE}
+# EPV --------------------------------------------------------------
+pred <- c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP")
+
+# Estimate full model ----------------------------------------------
+full_mod <- glm(sev.or.inte ~ VCAM + SDC + Ang + IL8 + IP10 + IL1RA + CD163 + TREM + Fer + CRP, 
+                family=binomial, data=dat1c, x=T, y=T)
+full_est <- coef(full_mod)
+full_se <- coef(summary(full_mod))[, "Std. Error"]
+pred_name <- names(full_est)[-1]
+
+# Selected model (for bootstrap results) ---------------------------
+sel_m <- dredge(full_mod, rank="AIC")
+sel_var <- matrix(0, ncol = length(pred), nrow = 1, dimnames = list(NULL, pred))
+sel_var_tmp <- attr(get.models(sel_m, 1)[[1]]$terms, "term.labels")
+
+for (j in 1:ncol(sel_var)) {
+  sel_var[1,j] <- ifelse(names(sel_var[1,j]) %in% sel_var_tmp, 1, 0)
+}
+
+formula <- paste("sev.or.inte~", paste(names(sel_var[1,][sel_var[1,]==1]), collapse = "+"))
+sel_mod <- glm(formula, data = dat1, family = binomial, x = T, y = T)
+sel_est <- coef(sel_mod[1])[c("(Intercept)", pred_name)]
+sel_est[is.na(sel_est)] <- 0
+names(sel_est) <- c("(Intercept)", pred_name)
+sel_se <- coef(summary(sel_mod))[, "Std. Error"][c("(Intercept)", pred_name)]
+sel_se[is.na(sel_se)] <- 0
+
+# Bootstrap results ------------------------------------------------
+## The following codes were modified from Heinze G. et al (https://doi.org/10.1002/bimj.201700067)
+bootnum <- 1000
+boot_var <- matrix(0, ncol = length(pred) + 1, nrow = bootnum, dimnames = list(NULL, c(pred, "aic")))
+boot_est <-  boot_se <- matrix(0, ncol = length(pred_name) + 1, nrow = bootnum,
+                               dimnames = list(NULL, c("(Intercept)", pred_name)))
+load("5a.RData") # Load bootstrap results
+boot_01 <- (boot_est != 0) * 1
+boot_inclusion <- apply(boot_01, 2, function(x) sum(x) / length(x) * 100)
+
+## Overview of estimates and measures
+sqe <- (t(boot_est) - full_est) ^ 2
+rmsd <- apply(sqe, 1, function(x) sqrt(mean(x)))
+rmsdratio <- rmsd / full_se
+boot_mean <- apply(boot_est, 2, mean)
+boot_meanratio <- boot_mean / full_est
+boot_relbias <- (boot_meanratio / (boot_inclusion / 100) - 1) * 100
+boot_median <- apply(boot_est, 2, median)
+boot_025per <- apply(boot_est, 2, function(x) quantile(x, 0.025))
+boot_975per <- apply(boot_est, 2, function(x) quantile(x, 0.975))
+  
+overview <- round(cbind(full_est, full_se, boot_inclusion, sel_est, sel_se,  
+                        rmsdratio, boot_relbias, boot_median, boot_025per, 
+                        boot_975per), 4)
+overview <- overview[order(overview[,"boot_inclusion"], decreasing=T),]
+knitr::kable(overview)
+```
+
+###########################################################################################
+#### Appendix 7—table 3. Model selection frequencies for adults.
+```{r table A7.3, echo=FALSE, message=FALSE, warning=FALSE}
+# EPV --------------------------------------------------------------
+pred <- c("VCAM", "SDC", "Ang", "IL8", "ns1(IP10)", "IL1RA", "CD163", "TREM", "Fer", "CRP")
+
+# Bootstrap results ------------------------------------------------
+## The following codes were modified from Heinze G. et al (https://doi.org/10.1002/bimj.201700067)
+bootnum <- 1000
+boot_var <- matrix(0, ncol = length(pred) + 1, nrow = bootnum, dimnames = list(NULL, c(pred, "aic")))
+load("5c.RData") # Load bootstrap results
+
+## Model frequency
+group_cols <- c(colnames(data.frame(boot_var))[1:length(pred)])
+boot_modfreq <- data.frame(boot_var) %>%
+  mutate(time = 1) %>%
+  group_by_(.dots = group_cols) %>%
+  summarise(aic_median = round(median(aic),1),
+            aic_025 = round(quantile(aic, 0.025),1),
+            aic_975 = round(quantile(aic, 0.975),1),
+            count = sum(time)) %>%
+  ungroup() %>%
+  mutate(percent = count/bootnum * 100) %>%
+  arrange(desc(count)) %>%
+  slice(1:20) %>%
+  as.data.frame(.)
+
+out <- boot_modfreq
+for (i in 1:(ncol(out)-5)) {
+  out[,i] <- ifelse(out[,i]==0, NA, "+")
+}
+
+knitr::kable(out)
+```
+
+###########################################################################################
+#### Appendix 7—table 4. Model stability for adults.
+```{r table A7.4, echo=FALSE, message=FALSE, warning=FALSE}
+# EPV --------------------------------------------------------------
+pred <- c("VCAM", "SDC", "Ang", "IL8", "ns1(IP10)", "IL1RA", "CD163", "TREM", "Fer", "CRP")
+
+# Estimate full model ----------------------------------------------
+full_mod <- glm(sev.or.inte ~ VCAM + SDC + Ang + IL8 + ns1(IP10) + IL1RA + CD163 + TREM + Fer + CRP, 
+                family=binomial, data=dat1a, x=T, y=T)
+full_est <- coef(full_mod)
+full_se <- coef(summary(full_mod))[, "Std. Error"]
+pred_name <- names(full_est)[-1]
+
+# Selected model (for bootstrap results) ---------------------------
+sel_m <- dredge(full_mod, rank="AIC")
+sel_var <- matrix(0, ncol = length(pred), nrow = 1, dimnames = list(NULL, pred))
+sel_var_tmp <- attr(get.models(sel_m, 1)[[1]]$terms, "term.labels")
+
+for (j in 1:ncol(sel_var)) {
+  sel_var[1,j] <- ifelse(names(sel_var[1,j]) %in% sel_var_tmp, 1, 0)
+}
+
+formula <- paste("sev.or.inte~", paste(names(sel_var[1,][sel_var[1,]==1]), collapse = "+"))
+sel_mod <- glm(formula, data = dat1, family = binomial, x = T, y = T)
+sel_est <- coef(sel_mod[1])[c("(Intercept)", pred_name)]
+sel_est[is.na(sel_est)] <- 0
+names(sel_est) <- c("(Intercept)", pred_name)
+sel_se <- coef(summary(sel_mod))[, "Std. Error"][c("(Intercept)", pred_name)]
+sel_se[is.na(sel_se)] <- 0
+
+# Bootstrap results ------------------------------------------------
+## The following codes were modified from Heinze G. et al (https://doi.org/10.1002/bimj.201700067)
+bootnum <- 1000
+boot_var <- matrix(0, ncol = length(pred) + 1, nrow = bootnum, dimnames = list(NULL, c(pred, "aic")))
+boot_est <-  boot_se <- matrix(0, ncol = length(pred_name) + 1, nrow = bootnum,
+                               dimnames = list(NULL, c("(Intercept)", pred_name)))
+load("5c.RData") # Load bootstrap results
+boot_01 <- (boot_est != 0) * 1
+boot_inclusion <- apply(boot_01, 2, function(x) sum(x) / length(x) * 100)
+
+## Overview of estimates and measures
+sqe <- (t(boot_est) - full_est) ^ 2
+rmsd <- apply(sqe, 1, function(x) sqrt(mean(x)))
+rmsdratio <- rmsd / full_se
+boot_mean <- apply(boot_est, 2, mean)
+boot_meanratio <- boot_mean / full_est
+boot_relbias <- (boot_meanratio / (boot_inclusion / 100) - 1) * 100
+boot_median <- apply(boot_est, 2, median)
+boot_025per <- apply(boot_est, 2, function(x) quantile(x, 0.025))
+boot_975per <- apply(boot_est, 2, function(x) quantile(x, 0.975))
+  
+overview <- round(cbind(full_est, full_se, boot_inclusion, sel_est, sel_se,  
+                        rmsdratio, boot_relbias, boot_median, boot_025per, 
+                        boot_975per), 4)
+overview <- overview[order(overview[,"boot_inclusion"], decreasing=T),]
+knitr::kable(overview)
+```
+
+###########################################################################################
+#### Appendix 8—figure 1. Results from models for severe/moderate dengue including viremia as a potential biomarker.
+```{r fig A8.1, echo=FALSE, message=FALSE, warning=FALSE}
+# Set datadist for 'lrm' function [rms]
+dd <- datadist(dat1); options(datadist="dd")
+
+# For children
+dd$limits["Adjust to","Age"] <- 10
+
+dat_m1 <- get_pred1(out="sev.or.inte", bio="VCAM", age=10, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m2 <- get_pred1(out="sev.or.inte", bio="SDC", age=10, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m3 <- get_pred1(out="sev.or.inte", bio="Ang", age=10, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m4 <- get_pred1(out="sev.or.inte", bio="IL8", age=10, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m5 <- get_pred1(out="sev.or.inte", bio="IP10", age=10, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m6 <- get_pred1(out="sev.or.inte", bio="IL1RA", age=10, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m7 <- get_pred1(out="sev.or.inte", bio="CD163", age=10, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m8 <- get_pred1(out="sev.or.inte", bio="TREM", age=10, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m9 <- get_pred1(out="sev.or.inte", bio="Fer", age=10, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m10 <- get_pred1(out="sev.or.inte", bio="CRP", age=10, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_m11 <- get_pred1(out="sev.or.inte", bio="Vir", age=10, dat=dat1) %>% rename(value=Vir) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+
+dat_mg1 <- get_pred2v(out="sev.or.inte", bio="VCAM", age=10, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg2 <- get_pred2v(out="sev.or.inte", bio="SDC", age=10, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg3 <- get_pred2v(out="sev.or.inte", bio="Ang", age=10, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg4 <- get_pred2v(out="sev.or.inte", bio="IL8", age=10, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg5 <- get_pred2v(out="sev.or.inte", bio="IP10", age=10, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg6 <- get_pred2v(out="sev.or.inte", bio="IL1RA", age=10, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg7 <- get_pred2v(out="sev.or.inte", bio="CD163", age=10, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg8 <- get_pred2v(out="sev.or.inte", bio="TREM", age=10, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg9 <- get_pred2v(out="sev.or.inte", bio="Fer", age=10, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg10 <- get_pred2v(out="sev.or.inte", bio="CRP", age=10, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+dat_mg11 <- get_pred2v(out="sev.or.inte", bio="Vir", age=10, dat=dat1) %>% rename(value=Vir) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
+
+dat_p1 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10, dat_m11,dat_mg11) %>%
+  mutate(age = "10 years")
+
+# For adults
+dd$limits["Adjust to","Age"] <- 25
+
+dat_m1 <- get_pred1(out="sev.or.inte", bio="VCAM", age=25, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m2 <- get_pred1(out="sev.or.inte", bio="SDC", age=25, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m3 <- get_pred1(out="sev.or.inte", bio="Ang", age=25, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m4 <- get_pred1(out="sev.or.inte", bio="IL8", age=25, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m5 <- get_pred1(out="sev.or.inte", bio="IP10", age=25, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m6 <- get_pred1(out="sev.or.inte", bio="IL1RA", age=25, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m7 <- get_pred1(out="sev.or.inte", bio="CD163", age=25, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m8 <- get_pred1(out="sev.or.inte", bio="TREM", age=25, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m9 <- get_pred1(out="sev.or.inte", bio="Fer", age=25, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m10 <- get_pred1(out="sev.or.inte", bio="CRP", age=25, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_m11 <- get_pred1(out="sev.or.inte", bio="Vir", age=25, dat=dat1) %>% rename(value=Vir) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+
+dat_mg1 <- get_pred2v(out="sev.or.inte", bio="VCAM", age=25, dat=dat1) %>% rename(value=VCAM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg2 <- get_pred2v(out="sev.or.inte", bio="SDC", age=25, dat=dat1) %>% rename(value=SDC) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg3 <- get_pred2v(out="sev.or.inte", bio="Ang", age=25, dat=dat1) %>% rename(value=Ang) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg4 <- get_pred2v(out="sev.or.inte", bio="IL8", age=25, dat=dat1) %>% rename(value=IL8) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg5 <- get_pred2v(out="sev.or.inte", bio="IP10", age=25, dat=dat1) %>% rename(value=IP10) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg6 <- get_pred2v(out="sev.or.inte", bio="IL1RA", age=25, dat=dat1) %>% rename(value=IL1RA) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg7 <- get_pred2v(out="sev.or.inte", bio="CD163", age=25, dat=dat1) %>% rename(value=CD163) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg8 <- get_pred2v(out="sev.or.inte", bio="TREM", age=25, dat=dat1) %>% rename(value=TREM) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg9 <- get_pred2v(out="sev.or.inte", bio="Fer", age=25, dat=dat1) %>% rename(value=Fer) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg10 <- get_pred2v(out="sev.or.inte", bio="CRP", age=25, dat=dat1) %>% rename(value=CRP) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+dat_mg11 <- get_pred2v(out="sev.or.inte", bio="Vir", age=25, dat=dat1) %>% rename(value=Vir) %>% 
+  select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
+
+dat_p2 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10, dat_m11,dat_mg11) %>%
+  mutate(age = "25 years")
+
+# Merge data for children and adults
+vis1 <- rbind(dat_p1, dat_p2) %>% mutate(outcome = "outcome 1")
+
+# Merge data for plots
+tmp0 <- dat %>% arrange(age15) %>% select(sev.or.inte)
+tmp <- data.frame(sev.or.inte = rep(tmp0$sev.or.inte, 22))
+  
+tmp_p1 <- vis1 %>%
+  arrange(biomarker, model) %>%
+  mutate(value1 = 2^value,
+         age = factor(age, levels=c("10 years", "25 years")),
+         gr = ifelse(model=="Single model" & age=="10 years", 1,
+                     ifelse(model=="Single model" & age=="25 years", 2,
+                            ifelse(model=="Global model" & age=="10 years", 3, 4))),
+         gr = factor(gr, levels=c(1:4), labels=c("Single children", "Single adults", "Global children", "Global adults")),
+         model = factor(model, levels=c("Single model", "Global model"))) %>%
+  bind_cols(., tmp)
+
+vline <- tmp_p1 %>%
+  filter(model=="Single model") %>%
+  filter(yhat==0) %>%
+  select(biomarker, value, value1) %>%
+  rename(vline=value, vline1=value1)
+
+dat_p <- left_join(tmp_p1, vline, by="biomarker")
+
+# Alternative data to limit to 5th - 95th of the values
+dat_alt <- dat_p %>%
+  filter(value != 0) %>%
+  group_by(biomarker, model) %>%
+  mutate(up = quantile(value, .95),
+         lo = quantile(value, .05)) %>%
+  ungroup() %>%
+  mutate(is.outlier = value<lo | value>up | value<0,
+         value = ifelse(is.outlier, NA, value),
+         value1 = ifelse(is.outlier, NA, value1),
+         yhat = ifelse(is.outlier, NA, yhat),
+         lower = ifelse(is.outlier, NA, lower),
+         upper = ifelse(is.outlier, NA, upper))
+
+dat_1_5 <- dat_alt %>% 
+  filter(biomarker %in% c("VCAM", "SDC", "Ang", "IL8", "IP10")) %>%
+  mutate(biomarker = factor(biomarker, levels=c("VCAM", "SDC", "Ang", "IL8", "IP10")))
+
+dat_6_11 <- dat_alt %>% 
+  filter(biomarker %in% c("IL1RA", "CD163", "TREM", "Fer", "CRP", "Vir")) %>%
+  mutate(biomarker = factor(biomarker, levels=c("IL1RA", "CD163", "TREM", "Fer", "CRP", "Vir")))
+
+# Modify facets' scales
+#library(facetscales)
+
+xVCAM <- c(1,4,15,60,250,1000,4000)
+xSDC <- c(1400,2000,2800,4000,5600)
+xAng <- c(50,100,250,500,1000,2000)
+xIL8 <- c(5,7,10,14,20,28,40)
+xIP10 <- c(25,100,400,1600,6400)
+xIL1RA <- c(1000,2000,4000,8000,16000)
+xCD163 <- c(75,150,300,600)
+xTREM <- c(35,50,70,100,140,200)
+xFer <- c(50,100,200,400,800)
+xCRP <- c(2.5,5,10,20,40,80)
+xVir <- c(0:10)
+
+scales_x <- list(
+  `VCAM` = scale_x_continuous(breaks = log2(xVCAM), labels = xVCAM),
+  `SDC` = scale_x_continuous(breaks = log2(xSDC), labels = xSDC),
+  `Ang` = scale_x_continuous(breaks = log2(xAng), labels = xAng), 
+  `IL8` = scale_x_continuous(breaks = log2(xIL8), labels = xIL8), 
+  `IP10` = scale_x_continuous(breaks = log2(xIP10), labels = xIP10), 
+  `IL1RA` = scale_x_continuous(breaks = log2(xIL1RA), labels = xIL1RA), 
+  `CD163` = scale_x_continuous(breaks = log2(xCD163), labels = xCD163), 
+  `TREM` = scale_x_continuous(breaks = log2(xTREM), labels = xTREM), 
+  `Fer` = scale_x_continuous(breaks = log2(xFer), labels = xFer), 
+  `CRP` = scale_x_continuous(breaks = log2(xCRP), labels = xCRP),
+  `Vir` = scale_x_continuous(breaks = xVir, labels = xVir)
+)
+
+ybreak1 <- c(.125, .25, .5, 1, 2, 4, 8)
+ybreak2 <- c(.125, .25, .5, 1, 2, 4)
+
+scales_y1 <- list(
+  `Single model` = scale_y_continuous(limits = c(log(.124), log(8.01)), breaks = log(ybreak1), labels = ybreak1),
+  `Global model` = scale_y_continuous(limits = c(log(.124), log(8.01)), breaks = log(ybreak1), labels = ybreak1)
+)
+
+scales_y2 <- list(
+  `Single model` = scale_y_continuous(limits = c(log(.124), log(4.01)), breaks = log(ybreak2), labels = ybreak2),
+  `Global model` = scale_y_continuous(limits = c(log(.124), log(4.01)), breaks = log(ybreak2), labels = ybreak2)
+)
+
+# Set facets' names
+models <- c(`Single model` = "Single model",
+            `Global model` = "Global model")
+
+biomarkers <- c(`VCAM` = "VCAM-1 (ng/ml)",
+                `SDC`= "SDC-1 (pg/ml)",
+                `Ang` = "Ang-2 (pg/ml)",
+                `IL8` = "IL-8 (pg/ml)",
+                `IP10` = "IP-10 (pg/ml)",
+                `IL1RA` = "IL-1RA (pg/ml)",
+                `CD163` = "sCD163 (ng/ml)",
+                `TREM` = "sTREM-1 (pg/ml)",
+                `Fer` = "Ferritin (ng/ml)",
+                `CRP` = "CRP (mg/l)",
+                `Vir` = "Log10 viremia")
+
+# Plot for the first 5 biomarkers
+p.1.5 <- ggplot(dat_1_5, aes(x=value)) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=age), alpha=.15) +
+  geom_vline(aes(xintercept=vline), color="black", linetype="dashed", alpha=.4) +
+  geom_hline(yintercept=0, color="black", linetype="dashed", alpha=.4) +
+  geom_line(aes(y=yhat, color=age), size=.5, alpha=.7) +
+  geom_rug(data=filter(dat_1_5, model=="Single model" & sev.or.inte==0 & age=="10 years"), sides="b", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_1_5, model=="Single model" & sev.or.inte==1 & age=="10 years"), sides="t", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_1_5, model=="Global model" & sev.or.inte==0 & age=="25 years"), sides="b", alpha=.2, color="blue") +
+  geom_rug(data=filter(dat_1_5, model=="Global model" & sev.or.inte==1 & age=="25 years"), sides="t", alpha=.2, color="blue") +
+  scale_color_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  scale_fill_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  ylab("Odds ratio") +
+  theme(legend.position="top", legend.title=element_blank(), axis.title.x=element_blank(), axis.text.x=element_text(angle=45)) +
+  facet_grid_sc(cols=vars(biomarker), rows=vars(model), 
+                scales=list(x=scales_x, y=scales_y1),
+                labeller = as_labeller(c(models, biomarkers)))
+
+# Plot for the last 5 biomarkers
+p.6.11 <- ggplot(dat_6_11, aes(x=value)) +
+  geom_ribbon(aes(ymin=lower, ymax=upper, fill=age), alpha=.15) +
+  geom_vline(aes(xintercept=vline), color="black", linetype="dashed", alpha=.4) +
+  geom_hline(yintercept=0, color="black", linetype="dashed", alpha=.4) +
+  geom_line(aes(y=yhat, color=age), size=.5, alpha=.7) +
+  geom_rug(data=filter(dat_6_11, model=="Single model" & sev.or.inte==0 & age=="10 years"), sides="b", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_6_11, model=="Single model" & sev.or.inte==1 & age=="10 years"), sides="t", alpha=.2, color="red") +
+  geom_rug(data=filter(dat_6_11, model=="Global model" & sev.or.inte==0 & age=="25 years"), sides="b", alpha=.2, color="blue") +
+  geom_rug(data=filter(dat_6_11, model=="Global model" & sev.or.inte==1 & age=="25 years"), sides="t", alpha=.2, color="blue") +
+  scale_color_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  scale_fill_manual(values=c("red","blue"), labels=c("Children","Adults")) +
+  ylab("Odds ratio") +
+  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_text(angle=45)) +
+  facet_grid_sc(cols=vars(biomarker), rows=vars(model), 
+                scales=list(x=scales_x, y=scales_y2),
+                labeller = as_labeller(c(models, biomarkers)))
+
+# Merge plots
+p81 <- gridExtra::grid.arrange(p.1.5, p.6.11, nrow=2, heights=c(1,.86))
+#ggsave(filename="A8_fig1.pdf", p81, dpi=300, width=8.5, height=6.2)
+```
+
+###########################################################################################
+#### Appendix 8—table 1. Results from models for severe/moderate dengue including viremia as a potential biomarker.
+```{r table A8.1, echo=FALSE, message=FALSE, warning=FALSE}
+# Set datadist for 'lrm' function [rms]
+dd <- datadist(dat1); options(datadist="dd")
+
+# Set references to calculate results
+ref0v <- c(ref0, median(dat1$Vir))
+
+# Get ORs and 95% CIs
+tmp1 <- data.frame(
+  sort1 = rep(c(1:11), 2),
+  sort2 = c(rep(2,11), rep(3,11)),
+  bio = rep(c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP", "Vir"), 2),
+  ref1 = c(ref0v-1, ref0v),
+  ref2 = c(ref0v, ref0v+1)
+) %>%
+  arrange(sort1, sort2) %>%
+  group_by(sort1, sort2) %>%
+  do(cbind(.,
+           # Children - single models
+           or1c = get_est1(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=10, dat=dat1),
+           lo1c = get_est1(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=10, dat=dat1),
+           up1c = get_est1(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=10, dat=dat1),
+           # Children - global model
+           or2c = get_est2v(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=10, dat=dat1),
+           lo2c = get_est2v(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=10, dat=dat1),
+           up2c = get_est2v(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=10, dat=dat1),
+           # Adults - single models
+           or1a = get_est1(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=25, dat=dat1),
+           lo1a = get_est1(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=25, dat=dat1),
+           up1a = get_est1(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=25, dat=dat1),
+           # Adults - global model
+           or2a = get_est2v(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="OR", age=25, dat=dat1),
+           lo2a = get_est2v(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=25, dat=dat1),
+           up2a = get_est2v(out="sev.or.inte", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=25, dat=dat1))) %>%
+  ungroup()
+for (i in 6:17) {tmp1[[i]] <- sprintf("%.2f", round(tmp1[[i]],2))}
+
+# Get p-values
+tmp2 <- data.frame(
+  sort1 = c(1:11),
+  sort2 = rep(1,11),
+  bio = c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP", "Vir")
+) %>%
+  group_by(sort1) %>%
+  do(cbind(.,
+           p.s1 = get_est1(out="sev.or.inte", bio=.$bio, est="p", dat=dat1),
+           p.s1_int = get_est1(out="sev.or.inte", bio=.$bio, est="p int", dat=dat1),
+           p.g1 = get_est2v(out="sev.or.inte", bio=.$bio, est="p", dat=dat1),
+           p.g1_int = get_est2v(out="sev.or.inte", bio=.$bio, est="p int", dat=dat1))) %>%
+  ungroup()
+for (i in 4:7) {tmp2[[i]] <- ifelse(tmp2[[i]]<0.001, "<0.001", sprintf("%.3f", round(tmp2[[i]],3)))}  
+
+# Combine results
+res1 <- bind_rows(tmp1, tmp2) %>%
+  arrange(sort1, sort2) %>%
+  mutate(bio = ifelse(is.na(ref1), as.character(bio),
+                      ifelse(bio!="Vir", paste(" -", round(2^ref2,0), "vs", round(2^ref1,0), sep=" "),
+                             paste(" -", round(ref2,1), "vs", round(ref1,1), sep=" "))),
+         or.sc1 = ifelse(is.na(lo1c), NA, paste(or1c, " (", lo1c, "-", up1c, ")", sep="")), # s: single model; c: children
+         or.gc1 = ifelse(is.na(lo2c), NA, paste(or2c, " (", lo2c, "-", up2c, ")", sep="")), # g: global model
+         or.sa1 = ifelse(is.na(lo1a), NA, paste(or1a, " (", lo1a, "-", up1a, ")", sep="")), # a: adults
+         or.ga1 = ifelse(is.na(lo2a), NA, paste(or2a, " (", lo2a, "-", up2a, ")", sep=""))) %>%
+  select(bio, or.sc1, or.sa1, p.s1, p.s1_int, or.gc1, or.ga1, p.g1, p.g1_int)
+
+names(res1) <- c("", "OR (single - children)", "OR (single - adults)", "P overall (single)", "P interaction (single)",
+                 "OR (global - children)", "OR (global - adults)", "P overall (global)", "P interaction (global)")
+
+# Report results
+knitr::kable(res1)
+```
+
+###########################################################################################
+#### Appendix 8—table 2. Best combinations of biomarkers associated with severe or moderate dengue for children.
+```{r table A8.2, echo=FALSE, message=FALSE, warning=FALSE}
+# EPV --------------------------------------------------------------
+pred <- c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP", "Vir")
+
+# Estimate full model ----------------------------------------------
+full_mod <- glm(sev.or.inte ~ VCAM + SDC + Ang + IL8 + IP10 + IL1RA + CD163 + TREM + Fer + CRP + Vir, family=binomial, data=dat1c, x=T, y=T)
+
+# Selected model ---------------------------------------------------
+sel_var <- matrix(0, ncol=length(pred)+1, nrow=5, dimnames=list(NULL, c(pred, "aic")))
+
+for (i in 1:5) {
+  if (i==1) {
+    bs <- dredge(full_mod, rank="AIC")
+  } else {
+    bs <- dredge(full_mod, rank="AIC", m.lim=c(i,i))
+  }
+  bs_var <- attr(get.models(bs, 1)[[1]]$terms, "term.labels")
+
+  for (j in 1:(ncol(sel_var)-1)) {sel_var[i,j] <- ifelse(names(sel_var[i,j]) %in% bs_var, 1, 0)}
+  formula <- paste("sev.or.inte~", paste(names(sel_var[i,][sel_var[i,]==1]), collapse = "+"))
+  sel_mod <- glm(formula, data = dat1c, family = binomial, x = T, y = T)
+  sel_var[i, ncol(sel_var)] <- AIC(sel_mod)
+}
+
+# Report results --------------------------------------------------
+out1 <- as.data.frame(sel_var) %>% mutate(AIC = round(aic,1)) %>% select(-aic)
+for (i in 1:(ncol(out1)-1)) {out1[,i] <- ifelse(out1[,i]==0, NA, "+")}
+
+out2 <- as.data.frame(t(out1))
+colnames(out2) <- c("Best of all combinations", "Best combination of 2 variables", "Best combination of 3 variables",
+                    "Best combination of 4 variables", "Best combination of 5 variables")
+rownames(out2) <- c("- VCAM-1", "- SDC-1", "- Ang-2", "- IL-8", "- IP-10", "- IL-1RA", "- sCD163", "- sTREM-1",
+                    "- Ferritin", "- CRP", "- Viremia", "AIC of the selected model")
+
+knitr::kable(out2)
+```
+
+###########################################################################################
+#### Appendix 8—table 3. Best combinations of biomarkers associated with severe or moderate dengue for adults.
+```{r table A8.3, echo=FALSE, message=FALSE, warning=FALSE}
+# EPV --------------------------------------------------------------
+pred <- c("VCAM", "SDC", "Ang", "IL8", "ns1(IP10)", "IL1RA", "CD163", "TREM", "Fer", "CRP", "Vir")
+
+# Estimate full model ----------------------------------------------
+full_mod <- glm(sev.or.inte ~ VCAM + SDC + Ang + IL8 + ns1(IP10) + IL1RA + CD163 + TREM + Fer + CRP + Vir, family=binomial, data=dat1a, x=T, y=T)
+
+# Selected model ---------------------------------------------------
+sel_var <- matrix(0, ncol=length(pred)+1, nrow=5, dimnames=list(NULL, c(pred, "aic")))
+
+for (i in 1:5) {
+  if (i==1) {
+    bs <- dredge(full_mod, rank="AIC")
+  } else {
+    bs <- dredge(full_mod, rank="AIC", m.lim=c(i,i))
+  }
+  bs_var <- attr(get.models(bs, 1)[[1]]$terms, "term.labels")
+
+  for (j in 1:(ncol(sel_var)-1)) {sel_var[i,j] <- ifelse(names(sel_var[i,j]) %in% bs_var, 1, 0)}
+  formula <- paste("sev.or.inte~", paste(names(sel_var[i,][sel_var[i,]==1]), collapse = "+"))
+  sel_mod <- glm(formula, data = dat1a, family = binomial, x = T, y = T)
+  sel_var[i, ncol(sel_var)] <- AIC(sel_mod)
+}
+
+# Report results --------------------------------------------------
+out1 <- as.data.frame(sel_var) %>% mutate(AIC = round(aic,1)) %>% select(-aic)
+for (i in 1:(ncol(out1)-1)) {out1[,i] <- ifelse(out1[,i]==0, NA, "+")}
+
+out2 <- as.data.frame(t(out1))
+colnames(out2) <- c("Best of all combinations", "Best combination of 2 variables", "Best combination of 3 variables",
+                    "Best combination of 4 variables", "Best combination of 5 variables")
+rownames(out2) <- c("- VCAM-1", "- SDC-1", "- Ang-2", "- IL-8", "- IP-10", "- IL-1RA", "- sCD163", "- sTREM-1",
+                    "- Ferritin", "- CRP", "- Viremia", "AIC of the selected model")
+
+knitr::kable(out2)
+```
+
+###########################################################################################
+#### Appendix 9—table 1. Results of variable selection for children.
+```{r table A9.1, echo=FALSE, message=FALSE, warning=FALSE}
+# Full model
+pred <- c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP")
+formula <- paste("sev.or.inte ~", paste(pred, collapse = "+"))
+full_mod <- glm(formula, data = dat1c, family = binomial, x = T, y = T)
+
+# Null model
+mg <- glm(sev.or.inte ~ 1, data=dat1c, x=T, y=T, family="binomial")
+
+# Backward elimination
+s1 <- step(glm(formula, data = dat1c, family = binomial, x=T,y=T),
+           direction = "backward",
+           scope = list(upper = formula),
+           trace = 0)
+summary(s1)
+
+# Forward selection
+s2 <- step(glm(mg, data = dat1c, family = binomial, x=T,y=T),
+           direction = "forward",
+           scope = list(upper = formula, lower = mg),
+           trace = 0)
+summary(s2)
+
+# Stepwise forward
+s3 <- step(glm(mg, data = dat1c, family = binomial, x=T,y=T),
+           direction = "both",
+           scope = list(upper = formula, lower = mg),
+           trace = 0)
+summary(s3)
+
+# Stepwise backward
+s4 <- step(glm(formula, data = dat1c, family = binomial, x=T,y=T),
+           direction = "both",
+           scope = list(upper = formula, lower = mg),
+           trace = 0)
+summary(s4)
+
+# Augmented backward elimination
+require(abe)
+s5 <- abe(glm(formula, data=dat1c, family=binomial, x=T, y=T), criterion="AIC", tau=0.1, data=dat1c)
+summary(s5)
+
+# Bayesian projection
+## Thanks Vehtari A. et al. for the codes (https://avehtari.github.io/modelselection/diabetes.html)
+## The codes took around 10 minutes to complete
+require(projpred)
+require(rstanarm)
+p <- 11
+n <- dim(dat)[1]
+p0 <- 2 # prior guess for the number of relevant variables
+tau0 <- p0/(p-p0) * 1/sqrt(n)
+hs_prior <- hs(df=1, global_df=1, global_scale=tau0) # alternative horseshoe prior on weights
+t_prior <- student_t(df = 9, location = 0, scale = 2.5)
+
+post2 <- stan_glm(sev.or.inte ~ VCAM + SDC + Ang + IL8 + IP10 + IL1RA + CD163 + TREM + Fer + CRP, data = dat1c,
+                 family = binomial(link = "logit"), 
+                 prior = hs_prior, prior_intercept = t_prior,
+                 seed = 51086, adapt_delta = 0.9)
+
+varsel2 <- cv_varsel(post2, method='forward', nloo = n)
+plot(varsel2, stats = c('elpd', 'pctcorr'))
+(nv <- suggest_size(varsel2, alpha=0.2))
+
+proj2 <- project(varsel2, nv = nv, ns = 4000)
+round(colMeans(as.matrix(proj2)),1)
+round(posterior_interval(as.matrix(proj2)),1)
+```
+
+###########################################################################################
+#### Appendix 9—table 2. Results of variable selection for adults.
+```{r table A9.2, echo=FALSE, message=FALSE, warning=FALSE}
+# Full model
+pred <- c("VCAM", "SDC", "Ang", "IL8", "ns1(IP10)", "IL1RA", "CD163", "TREM", "Fer", "CRP")
+formula <- paste("sev.or.inte ~", paste(pred, collapse = "+"))
+full_mod <- glm(formula, data = dat1a, family = binomial, x = T, y = T)
+
+# Null model
+mg <- glm(sev.or.inte ~ 1, data=dat1a, x=T, y=T, family="binomial")
+
+# Backward elimination
+s1 <- step(glm(formula, data = dat1a, family = binomial, x=T,y=T),
+           direction = "backward",
+           scope = list(upper = formula),
+           trace = 0)
+summary(s1)
+
+# Forward selection
+s2 <- step(glm(mg, data = dat1a, family = binomial, x=T,y=T),
+           direction = "forward",
+           scope = list(upper = formula, lower = mg),
+           trace = 0)
+summary(s2)
+
+# Stepwise forward
+s3 <- step(glm(mg, data = dat1a, family = binomial, x=T,y=T),
+           direction = "both",
+           scope = list(upper = formula, lower = mg),
+           trace = 0)
+summary(s3)
+
+# Stepwise backward
+s4 <- step(glm(formula, data = dat1a, family = binomial, x=T,y=T),
+           direction = "both",
+           scope = list(upper = formula, lower = mg),
+           trace = 0)
+summary(s4)
+
+# Augmented backward elimination
+require(abe)
+s5 <- abe(glm(formula, data=dat1a, family=binomial, x=T, y=T), criterion="AIC", tau=0.1, data=dat1a)
+summary(s5)
+
+# Bayesian projection
+## Thanks Vehtari A. et al. for the codes (https://avehtari.github.io/modelselection/diabetes.html)
+## The codes took around 15 minutes to complete
+require(projpred)
+require(rstanarm)
+p <- 11
+n <- dim(dat)[1]
+p0 <- 2 # prior guess for the number of relevant variables
+tau0 <- p0/(p-p0) * 1/sqrt(n)
+hs_prior <- hs(df=1, global_df=1, global_scale=tau0) # alternative horseshoe prior on weights
+t_prior <- student_t(df = 10, location = 0, scale = 2.5)
+
+require(MASS)
+post2 <- stan_gamm4(sev.or.inte ~ VCAM + SDC + Ang + IL8 + s(IP10) + IL1RA + CD163 + TREM + Fer + CRP, data = dat1a,
+                 family = binomial(link = "logit"), 
+                 prior = hs_prior, prior_intercept = t_prior,
+                 seed = 51086, adapt_delta = 0.9)
+
+# Projection predictive variable selection
+varsel2 <- cv_varsel(post2, method='forward', nloo = n)
+plot(varsel2, stats = c('elpd', 'pctcorr'))
+(nv <- suggest_size(varsel2, alpha=0.2))
+
+proj2b <- project(varsel2, nv = nv, ns = 4000)
+round(colMeans(as.matrix(proj2b)),1)
+round(posterior_interval(as.matrix(proj2b)),1)
+```
+
