@@ -6,53 +6,8 @@ Nguyen Lam Vuong
 
 ``` r
 library(tidyverse)
-```
-
-    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──
-
-    ## ✓ ggplot2 3.3.5     ✓ purrr   0.3.4
-    ## ✓ tibble  3.1.3     ✓ dplyr   1.0.7
-    ## ✓ tidyr   1.1.3     ✓ stringr 1.4.0
-    ## ✓ readr   2.0.0     ✓ forcats 0.5.1
-
-    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-    ## x dplyr::filter() masks stats::filter()
-    ## x dplyr::lag()    masks stats::lag()
-
-``` r
 library(gtsummary) # need to install package 'flextable'
 library(rms)
-```
-
-    ## Loading required package: Hmisc
-
-    ## Loading required package: lattice
-
-    ## Loading required package: survival
-
-    ## Loading required package: Formula
-
-    ## 
-    ## Attaching package: 'Hmisc'
-
-    ## The following objects are masked from 'package:dplyr':
-    ## 
-    ##     src, summarize
-
-    ## The following objects are masked from 'package:base':
-    ## 
-    ##     format.pval, units
-
-    ## Loading required package: SparseM
-
-    ## 
-    ## Attaching package: 'SparseM'
-
-    ## The following object is masked from 'package:base':
-    ## 
-    ##     backsolve
-
-``` r
 library(MuMIn) # for best subset selection
 library(facetscales) # need to install package 'facetscales' from devtools::install_github("zeehio/facetscales")
 source("Elife ERA functions.R") # to include my functions
@@ -70,20 +25,7 @@ dat0 <- read_csv("Dengue_Biomarkers_data_27Jul2021.csv") %>%
          Serotype = as.factor(Serotype),
          Serology = factor(Serology, levels = c("Probable primary", "Probable secondary", "Inconclusive")),
          WHO2009 = factor(WHO2009, levels = c("Mild dengue", "Dengue with warning signs", "Severe dengue", "Unknown")))
-```
 
-    ## Rows: 1505 Columns: 51
-
-    ## ── Column specification ────────────────────────────────────────────────────────
-    ## Delimiter: ","
-    ## chr  (9): Code, Country, age15, Sex, Serotype, Serology, WHO2009, Time, Daygr
-    ## dbl (42): Age, Obesity, Diabetes, hospital, sev.or.inte, sev.only, sev.or.ws...
-
-    ## 
-    ## ℹ Use `spec()` to retrieve the full column specification for this data.
-    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-
-``` r
 # Data at enrollment (for Table 1 & Appendix 4-table 1)
 dat <- dat0 %>% filter(Time == "Enrolment")
 
@@ -160,12 +102,7 @@ t1 <- dat %>%
                            Serology ~ "Immune status", WHO2009 ~ "WHO 2009 classification", hospital ~ "Hospitalization")) %>%
   add_stat_label(label = c(all_categorical() ~ "n (%)", Age ~ "median (1st, 3rd quartiles)")) %>%
   modify_header(label = "", stat_by = "**{level} (N={n})**")
-```
 
-    ## Warning: The `stat_by` argument of `modify_header()` is deprecated as of gtsummary 1.3.6.
-    ## Use `modify_header(update = all_stat_cols() ~ "**{level} (N={n})**")` instead.
-
-``` r
 # Children (<15 years of age)
 t2 <- dat %>%
   filter(age15=="No") %>%
@@ -197,12 +134,12 @@ tbl_merge(tbls = list(t1, t2, t3),
           tab_spanner = c("**All patients**", "**Children**", "**Adults**"))
 ```
 
-<div id="zwpexyboee" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<div id="mfiakbcmth" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#zwpexyboee .gt_table {
+#mfiakbcmth .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -227,7 +164,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-left-color: #D3D3D3;
 }
 
-#zwpexyboee .gt_heading {
+#mfiakbcmth .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -239,7 +176,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-right-color: #D3D3D3;
 }
 
-#zwpexyboee .gt_title {
+#mfiakbcmth .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -249,7 +186,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-bottom-width: 0;
 }
 
-#zwpexyboee .gt_subtitle {
+#mfiakbcmth .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -259,13 +196,13 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-top-width: 0;
 }
 
-#zwpexyboee .gt_bottom_border {
+#mfiakbcmth .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#zwpexyboee .gt_col_headings {
+#mfiakbcmth .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -280,7 +217,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-right-color: #D3D3D3;
 }
 
-#zwpexyboee .gt_col_heading {
+#mfiakbcmth .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -300,7 +237,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   overflow-x: hidden;
 }
 
-#zwpexyboee .gt_column_spanner_outer {
+#mfiakbcmth .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -312,15 +249,15 @@ tbl_merge(tbls = list(t1, t2, t3),
   padding-right: 4px;
 }
 
-#zwpexyboee .gt_column_spanner_outer:first-child {
+#mfiakbcmth .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#zwpexyboee .gt_column_spanner_outer:last-child {
+#mfiakbcmth .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#zwpexyboee .gt_column_spanner {
+#mfiakbcmth .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -332,7 +269,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   width: 100%;
 }
 
-#zwpexyboee .gt_group_heading {
+#mfiakbcmth .gt_group_heading {
   padding: 8px;
   color: #333333;
   background-color: #FFFFFF;
@@ -354,7 +291,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   vertical-align: middle;
 }
 
-#zwpexyboee .gt_empty_group_heading {
+#mfiakbcmth .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -369,15 +306,15 @@ tbl_merge(tbls = list(t1, t2, t3),
   vertical-align: middle;
 }
 
-#zwpexyboee .gt_from_md > :first-child {
+#mfiakbcmth .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#zwpexyboee .gt_from_md > :last-child {
+#mfiakbcmth .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#zwpexyboee .gt_row {
+#mfiakbcmth .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -396,7 +333,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   overflow-x: hidden;
 }
 
-#zwpexyboee .gt_stub {
+#mfiakbcmth .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -408,7 +345,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   padding-left: 12px;
 }
 
-#zwpexyboee .gt_summary_row {
+#mfiakbcmth .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -418,7 +355,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   padding-right: 5px;
 }
 
-#zwpexyboee .gt_first_summary_row {
+#mfiakbcmth .gt_first_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -428,7 +365,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-top-color: #D3D3D3;
 }
 
-#zwpexyboee .gt_grand_summary_row {
+#mfiakbcmth .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -438,7 +375,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   padding-right: 5px;
 }
 
-#zwpexyboee .gt_first_grand_summary_row {
+#mfiakbcmth .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -448,11 +385,11 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-top-color: #D3D3D3;
 }
 
-#zwpexyboee .gt_striped {
+#mfiakbcmth .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#zwpexyboee .gt_table_body {
+#mfiakbcmth .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -461,7 +398,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-bottom-color: #D3D3D3;
 }
 
-#zwpexyboee .gt_footnotes {
+#mfiakbcmth .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -475,13 +412,13 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-right-color: #D3D3D3;
 }
 
-#zwpexyboee .gt_footnote {
+#mfiakbcmth .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding: 4px;
 }
 
-#zwpexyboee .gt_sourcenotes {
+#mfiakbcmth .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -495,41 +432,41 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-right-color: #D3D3D3;
 }
 
-#zwpexyboee .gt_sourcenote {
+#mfiakbcmth .gt_sourcenote {
   font-size: 90%;
   padding: 4px;
 }
 
-#zwpexyboee .gt_left {
+#mfiakbcmth .gt_left {
   text-align: left;
 }
 
-#zwpexyboee .gt_center {
+#mfiakbcmth .gt_center {
   text-align: center;
 }
 
-#zwpexyboee .gt_right {
+#mfiakbcmth .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#zwpexyboee .gt_font_normal {
+#mfiakbcmth .gt_font_normal {
   font-weight: normal;
 }
 
-#zwpexyboee .gt_font_bold {
+#mfiakbcmth .gt_font_bold {
   font-weight: bold;
 }
 
-#zwpexyboee .gt_font_italic {
+#mfiakbcmth .gt_font_italic {
   font-style: italic;
 }
 
-#zwpexyboee .gt_super {
+#mfiakbcmth .gt_super {
   font-size: 65%;
 }
 
-#zwpexyboee .gt_footnote_marks {
+#mfiakbcmth .gt_footnote_marks {
   font-style: italic;
   font-weight: normal;
   font-size: 65%;
@@ -787,10 +724,6 @@ p2 <- dat_plot %>%
         axis.text.y=element_text(size=rel(.8)))
 p2
 ```
-
-    ## Warning: Removed 4 rows containing non-finite values (stat_boxplot).
-
-    ## Warning: Removed 4 rows containing non-finite values (stat_boxplot).
 
 ![](Elife-ERA-codes_files/figure-gfm/fig%202-1.png)<!-- -->
 
@@ -1146,10 +1079,6 @@ p.6.10 <- ggplot(dat_6_10, aes(x=value)) +
 p3 <- gridExtra::grid.arrange(p.1.5, p.6.10, nrow=2, heights=c(1,.86))
 ```
 
-    ## Warning: Removed 84 row(s) containing missing values (geom_path).
-
-    ## Warning: Removed 84 row(s) containing missing values (geom_path).
-
 ![](Elife-ERA-codes_files/figure-gfm/fig%203-1.png)<!-- -->
 
 ``` r
@@ -1184,15 +1113,7 @@ for (i in 1:5) {
   sel_mod <- glm(formula, data = dat1c, family = binomial, x = T, y = T)
   sel_var[i, ncol(sel_var)] <- AIC(sel_mod)
 }
-```
 
-    ## Fixed term is "(Intercept)"
-    ## Fixed term is "(Intercept)"
-    ## Fixed term is "(Intercept)"
-    ## Fixed term is "(Intercept)"
-    ## Fixed term is "(Intercept)"
-
-``` r
 # Report results --------------------------------------------------
 out1 <- as.data.frame(sel_var) %>% mutate(AIC = round(aic,1)) %>% select(-aic)
 for (i in 1:(ncol(out1)-1)) {out1[,i] <- ifelse(out1[,i]==0, NA, "+")}
@@ -1236,11 +1157,7 @@ pred <- c("VCAM", "SDC", "Ang", "IL8", "ns1(IP10)", "IL1RA", "CD163", "TREM", "F
 # Estimate full model ----------------------------------------------
 full_mod <- glm(sev.or.inte ~ VCAM + SDC + Ang + IL8 + ns1(IP10) + IL1RA + CD163 + TREM + Fer + CRP, 
                 family=binomial, data=dat1a, x=T, y=T)
-```
 
-    ## Loading required package: splines
-
-``` r
 # Selected model ---------------------------------------------------
 sel_var <- matrix(0, ncol=length(pred)+1, nrow=5, dimnames=list(NULL, c(pred, "aic")))
 
@@ -1257,16 +1174,7 @@ for (i in 1:5) {
   sel_mod <- glm(formula, data = dat1a, family = binomial, x = T, y = T)
   sel_var[i, ncol(sel_var)] <- AIC(sel_mod)
 }
-```
 
-    ## Fixed term is "(Intercept)"
-
-    ## Fixed term is "(Intercept)"
-    ## Fixed term is "(Intercept)"
-    ## Fixed term is "(Intercept)"
-    ## Fixed term is "(Intercept)"
-
-``` r
 # Report results --------------------------------------------------
 out1 <- as.data.frame(sel_var) %>% mutate(AIC = round(aic,1)) %>% select(-aic)
 for (i in 1:(ncol(out1)-1)) {out1[,i] <- ifelse(out1[,i]==0, NA, "+")}
@@ -1370,15 +1278,12 @@ dat %>%
   modify_footnote(update = everything() ~ NA)
 ```
 
-    ## Warning: The `stat_by` argument of `modify_header()` is deprecated as of gtsummary 1.3.6.
-    ## Use `modify_header(update = all_stat_cols(FALSE) ~ "**{level} (N={n})**")` instead.
-
-<div id="gjdqzbybka" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<div id="akjangducp" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#gjdqzbybka .gt_table {
+#akjangducp .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -1403,7 +1308,7 @@ dat %>%
   border-left-color: #D3D3D3;
 }
 
-#gjdqzbybka .gt_heading {
+#akjangducp .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -1415,7 +1320,7 @@ dat %>%
   border-right-color: #D3D3D3;
 }
 
-#gjdqzbybka .gt_title {
+#akjangducp .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -1425,7 +1330,7 @@ dat %>%
   border-bottom-width: 0;
 }
 
-#gjdqzbybka .gt_subtitle {
+#akjangducp .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -1435,13 +1340,13 @@ dat %>%
   border-top-width: 0;
 }
 
-#gjdqzbybka .gt_bottom_border {
+#akjangducp .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#gjdqzbybka .gt_col_headings {
+#akjangducp .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1456,7 +1361,7 @@ dat %>%
   border-right-color: #D3D3D3;
 }
 
-#gjdqzbybka .gt_col_heading {
+#akjangducp .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1476,7 +1381,7 @@ dat %>%
   overflow-x: hidden;
 }
 
-#gjdqzbybka .gt_column_spanner_outer {
+#akjangducp .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1488,15 +1393,15 @@ dat %>%
   padding-right: 4px;
 }
 
-#gjdqzbybka .gt_column_spanner_outer:first-child {
+#akjangducp .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#gjdqzbybka .gt_column_spanner_outer:last-child {
+#akjangducp .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#gjdqzbybka .gt_column_spanner {
+#akjangducp .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -1508,7 +1413,7 @@ dat %>%
   width: 100%;
 }
 
-#gjdqzbybka .gt_group_heading {
+#akjangducp .gt_group_heading {
   padding: 8px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1530,7 +1435,7 @@ dat %>%
   vertical-align: middle;
 }
 
-#gjdqzbybka .gt_empty_group_heading {
+#akjangducp .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1545,15 +1450,15 @@ dat %>%
   vertical-align: middle;
 }
 
-#gjdqzbybka .gt_from_md > :first-child {
+#akjangducp .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#gjdqzbybka .gt_from_md > :last-child {
+#akjangducp .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#gjdqzbybka .gt_row {
+#akjangducp .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1572,7 +1477,7 @@ dat %>%
   overflow-x: hidden;
 }
 
-#gjdqzbybka .gt_stub {
+#akjangducp .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1584,7 +1489,7 @@ dat %>%
   padding-left: 12px;
 }
 
-#gjdqzbybka .gt_summary_row {
+#akjangducp .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1594,7 +1499,7 @@ dat %>%
   padding-right: 5px;
 }
 
-#gjdqzbybka .gt_first_summary_row {
+#akjangducp .gt_first_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1604,7 +1509,7 @@ dat %>%
   border-top-color: #D3D3D3;
 }
 
-#gjdqzbybka .gt_grand_summary_row {
+#akjangducp .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1614,7 +1519,7 @@ dat %>%
   padding-right: 5px;
 }
 
-#gjdqzbybka .gt_first_grand_summary_row {
+#akjangducp .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1624,11 +1529,11 @@ dat %>%
   border-top-color: #D3D3D3;
 }
 
-#gjdqzbybka .gt_striped {
+#akjangducp .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#gjdqzbybka .gt_table_body {
+#akjangducp .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1637,7 +1542,7 @@ dat %>%
   border-bottom-color: #D3D3D3;
 }
 
-#gjdqzbybka .gt_footnotes {
+#akjangducp .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1651,13 +1556,13 @@ dat %>%
   border-right-color: #D3D3D3;
 }
 
-#gjdqzbybka .gt_footnote {
+#akjangducp .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding: 4px;
 }
 
-#gjdqzbybka .gt_sourcenotes {
+#akjangducp .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1671,41 +1576,41 @@ dat %>%
   border-right-color: #D3D3D3;
 }
 
-#gjdqzbybka .gt_sourcenote {
+#akjangducp .gt_sourcenote {
   font-size: 90%;
   padding: 4px;
 }
 
-#gjdqzbybka .gt_left {
+#akjangducp .gt_left {
   text-align: left;
 }
 
-#gjdqzbybka .gt_center {
+#akjangducp .gt_center {
   text-align: center;
 }
 
-#gjdqzbybka .gt_right {
+#akjangducp .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#gjdqzbybka .gt_font_normal {
+#akjangducp .gt_font_normal {
   font-weight: normal;
 }
 
-#gjdqzbybka .gt_font_bold {
+#akjangducp .gt_font_bold {
   font-weight: bold;
 }
 
-#gjdqzbybka .gt_font_italic {
+#akjangducp .gt_font_italic {
   font-style: italic;
 }
 
-#gjdqzbybka .gt_super {
+#akjangducp .gt_super {
   font-size: 65%;
 }
 
-#gjdqzbybka .gt_footnote_marks {
+#akjangducp .gt_footnote_marks {
   font-style: italic;
   font-weight: normal;
   font-size: 65%;
@@ -1838,12 +1743,12 @@ tbl_merge(tbls = list(t1, t2, t3),
           tab_spanner = c("**All patients**", "**Children**", "**Adults**"))
 ```
 
-<div id="mabknlvtnb" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<div id="rchxvpddux" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#mabknlvtnb .gt_table {
+#rchxvpddux .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -1868,7 +1773,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-left-color: #D3D3D3;
 }
 
-#mabknlvtnb .gt_heading {
+#rchxvpddux .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -1880,7 +1785,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-right-color: #D3D3D3;
 }
 
-#mabknlvtnb .gt_title {
+#rchxvpddux .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -1890,7 +1795,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-bottom-width: 0;
 }
 
-#mabknlvtnb .gt_subtitle {
+#rchxvpddux .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -1900,13 +1805,13 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-top-width: 0;
 }
 
-#mabknlvtnb .gt_bottom_border {
+#rchxvpddux .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#mabknlvtnb .gt_col_headings {
+#rchxvpddux .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1921,7 +1826,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-right-color: #D3D3D3;
 }
 
-#mabknlvtnb .gt_col_heading {
+#rchxvpddux .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1941,7 +1846,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   overflow-x: hidden;
 }
 
-#mabknlvtnb .gt_column_spanner_outer {
+#rchxvpddux .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1953,15 +1858,15 @@ tbl_merge(tbls = list(t1, t2, t3),
   padding-right: 4px;
 }
 
-#mabknlvtnb .gt_column_spanner_outer:first-child {
+#rchxvpddux .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#mabknlvtnb .gt_column_spanner_outer:last-child {
+#rchxvpddux .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#mabknlvtnb .gt_column_spanner {
+#rchxvpddux .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -1973,7 +1878,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   width: 100%;
 }
 
-#mabknlvtnb .gt_group_heading {
+#rchxvpddux .gt_group_heading {
   padding: 8px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1995,7 +1900,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   vertical-align: middle;
 }
 
-#mabknlvtnb .gt_empty_group_heading {
+#rchxvpddux .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -2010,15 +1915,15 @@ tbl_merge(tbls = list(t1, t2, t3),
   vertical-align: middle;
 }
 
-#mabknlvtnb .gt_from_md > :first-child {
+#rchxvpddux .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#mabknlvtnb .gt_from_md > :last-child {
+#rchxvpddux .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#mabknlvtnb .gt_row {
+#rchxvpddux .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2037,7 +1942,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   overflow-x: hidden;
 }
 
-#mabknlvtnb .gt_stub {
+#rchxvpddux .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -2049,7 +1954,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   padding-left: 12px;
 }
 
-#mabknlvtnb .gt_summary_row {
+#rchxvpddux .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -2059,7 +1964,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   padding-right: 5px;
 }
 
-#mabknlvtnb .gt_first_summary_row {
+#rchxvpddux .gt_first_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2069,7 +1974,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-top-color: #D3D3D3;
 }
 
-#mabknlvtnb .gt_grand_summary_row {
+#rchxvpddux .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -2079,7 +1984,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   padding-right: 5px;
 }
 
-#mabknlvtnb .gt_first_grand_summary_row {
+#rchxvpddux .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2089,11 +1994,11 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-top-color: #D3D3D3;
 }
 
-#mabknlvtnb .gt_striped {
+#rchxvpddux .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#mabknlvtnb .gt_table_body {
+#rchxvpddux .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -2102,7 +2007,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-bottom-color: #D3D3D3;
 }
 
-#mabknlvtnb .gt_footnotes {
+#rchxvpddux .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -2116,13 +2021,13 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-right-color: #D3D3D3;
 }
 
-#mabknlvtnb .gt_footnote {
+#rchxvpddux .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding: 4px;
 }
 
-#mabknlvtnb .gt_sourcenotes {
+#rchxvpddux .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -2136,41 +2041,41 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-right-color: #D3D3D3;
 }
 
-#mabknlvtnb .gt_sourcenote {
+#rchxvpddux .gt_sourcenote {
   font-size: 90%;
   padding: 4px;
 }
 
-#mabknlvtnb .gt_left {
+#rchxvpddux .gt_left {
   text-align: left;
 }
 
-#mabknlvtnb .gt_center {
+#rchxvpddux .gt_center {
   text-align: center;
 }
 
-#mabknlvtnb .gt_right {
+#rchxvpddux .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#mabknlvtnb .gt_font_normal {
+#rchxvpddux .gt_font_normal {
   font-weight: normal;
 }
 
-#mabknlvtnb .gt_font_bold {
+#rchxvpddux .gt_font_bold {
   font-weight: bold;
 }
 
-#mabknlvtnb .gt_font_italic {
+#rchxvpddux .gt_font_italic {
   font-style: italic;
 }
 
-#mabknlvtnb .gt_super {
+#rchxvpddux .gt_super {
   font-size: 65%;
 }
 
-#mabknlvtnb .gt_footnote_marks {
+#rchxvpddux .gt_footnote_marks {
   font-style: italic;
   font-weight: normal;
   font-size: 65%;
@@ -2333,12 +2238,12 @@ tbl_merge(tbls = list(t1, t2, t3),
           tab_spanner = c("**All patients**", "**Children**", "**Adults**"))
 ```
 
-<div id="qketswalmn" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<div id="jmmhwmlbth" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#qketswalmn .gt_table {
+#jmmhwmlbth .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -2363,7 +2268,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-left-color: #D3D3D3;
 }
 
-#qketswalmn .gt_heading {
+#jmmhwmlbth .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -2375,7 +2280,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-right-color: #D3D3D3;
 }
 
-#qketswalmn .gt_title {
+#jmmhwmlbth .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -2385,7 +2290,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-bottom-width: 0;
 }
 
-#qketswalmn .gt_subtitle {
+#jmmhwmlbth .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -2395,13 +2300,13 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-top-width: 0;
 }
 
-#qketswalmn .gt_bottom_border {
+#jmmhwmlbth .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#qketswalmn .gt_col_headings {
+#jmmhwmlbth .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -2416,7 +2321,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-right-color: #D3D3D3;
 }
 
-#qketswalmn .gt_col_heading {
+#jmmhwmlbth .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -2436,7 +2341,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   overflow-x: hidden;
 }
 
-#qketswalmn .gt_column_spanner_outer {
+#jmmhwmlbth .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -2448,15 +2353,15 @@ tbl_merge(tbls = list(t1, t2, t3),
   padding-right: 4px;
 }
 
-#qketswalmn .gt_column_spanner_outer:first-child {
+#jmmhwmlbth .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#qketswalmn .gt_column_spanner_outer:last-child {
+#jmmhwmlbth .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#qketswalmn .gt_column_spanner {
+#jmmhwmlbth .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -2468,7 +2373,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   width: 100%;
 }
 
-#qketswalmn .gt_group_heading {
+#jmmhwmlbth .gt_group_heading {
   padding: 8px;
   color: #333333;
   background-color: #FFFFFF;
@@ -2490,7 +2395,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   vertical-align: middle;
 }
 
-#qketswalmn .gt_empty_group_heading {
+#jmmhwmlbth .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -2505,15 +2410,15 @@ tbl_merge(tbls = list(t1, t2, t3),
   vertical-align: middle;
 }
 
-#qketswalmn .gt_from_md > :first-child {
+#jmmhwmlbth .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#qketswalmn .gt_from_md > :last-child {
+#jmmhwmlbth .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#qketswalmn .gt_row {
+#jmmhwmlbth .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2532,7 +2437,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   overflow-x: hidden;
 }
 
-#qketswalmn .gt_stub {
+#jmmhwmlbth .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -2544,7 +2449,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   padding-left: 12px;
 }
 
-#qketswalmn .gt_summary_row {
+#jmmhwmlbth .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -2554,7 +2459,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   padding-right: 5px;
 }
 
-#qketswalmn .gt_first_summary_row {
+#jmmhwmlbth .gt_first_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2564,7 +2469,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-top-color: #D3D3D3;
 }
 
-#qketswalmn .gt_grand_summary_row {
+#jmmhwmlbth .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -2574,7 +2479,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   padding-right: 5px;
 }
 
-#qketswalmn .gt_first_grand_summary_row {
+#jmmhwmlbth .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2584,11 +2489,11 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-top-color: #D3D3D3;
 }
 
-#qketswalmn .gt_striped {
+#jmmhwmlbth .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#qketswalmn .gt_table_body {
+#jmmhwmlbth .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -2597,7 +2502,7 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-bottom-color: #D3D3D3;
 }
 
-#qketswalmn .gt_footnotes {
+#jmmhwmlbth .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -2611,13 +2516,13 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-right-color: #D3D3D3;
 }
 
-#qketswalmn .gt_footnote {
+#jmmhwmlbth .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding: 4px;
 }
 
-#qketswalmn .gt_sourcenotes {
+#jmmhwmlbth .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -2631,41 +2536,41 @@ tbl_merge(tbls = list(t1, t2, t3),
   border-right-color: #D3D3D3;
 }
 
-#qketswalmn .gt_sourcenote {
+#jmmhwmlbth .gt_sourcenote {
   font-size: 90%;
   padding: 4px;
 }
 
-#qketswalmn .gt_left {
+#jmmhwmlbth .gt_left {
   text-align: left;
 }
 
-#qketswalmn .gt_center {
+#jmmhwmlbth .gt_center {
   text-align: center;
 }
 
-#qketswalmn .gt_right {
+#jmmhwmlbth .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#qketswalmn .gt_font_normal {
+#jmmhwmlbth .gt_font_normal {
   font-weight: normal;
 }
 
-#qketswalmn .gt_font_bold {
+#jmmhwmlbth .gt_font_bold {
   font-weight: bold;
 }
 
-#qketswalmn .gt_font_italic {
+#jmmhwmlbth .gt_font_italic {
   font-style: italic;
 }
 
-#qketswalmn .gt_super {
+#jmmhwmlbth .gt_super {
   font-size: 65%;
 }
 
-#qketswalmn .gt_footnote_marks {
+#jmmhwmlbth .gt_footnote_marks {
   font-style: italic;
   font-weight: normal;
   font-size: 65%;
@@ -2800,10 +2705,6 @@ p41 <- ggplot(dat_plot, aes(Day, Result^(1/4), color=group2)) +
 p41
 ```
 
-    ## Warning: Removed 4 rows containing missing values (geom_point).
-
-    ## Warning: Removed 4 row(s) containing missing values (geom_path).
-
 ![](Elife-ERA-codes_files/figure-gfm/fig%20A4.1-1.png)<!-- -->
 
 ``` r
@@ -2838,13 +2739,6 @@ p42 <- GGally::ggpairs(dat_fig42,
              upper = "blank",
              columnLabels = collabel) +
   theme(panel.grid.minor = element_blank())
-```
-
-    ## Registered S3 method overwritten by 'GGally':
-    ##   method from   
-    ##   +.gg   ggplot2
-
-``` r
 p42
 ```
 
@@ -3103,12 +2997,6 @@ p.6.10 <- ggplot(dat_6_10, aes(x=value)) +
 p51 <- gridExtra::grid.arrange(p.1.5, p.6.10, nrow=2, heights=c(1,.86))
 ```
 
-    ## Warning: Removed 1578 rows containing missing values (geom_vline).
-
-    ## Warning: Removed 78 row(s) containing missing values (geom_path).
-
-    ## Warning: Removed 156 row(s) containing missing values (geom_path).
-
 ![](Elife-ERA-codes_files/figure-gfm/fig%20A5.1-1.png)<!-- -->
 
 ``` r
@@ -3365,12 +3253,6 @@ p.6.10 <- ggplot(dat_6_10, aes(x=value)) +
 p52 <- gridExtra::grid.arrange(p.1.5, p.6.10, nrow=2, heights=c(1,.86))
 ```
 
-    ## Warning: Removed 1578 rows containing missing values (geom_vline).
-
-    ## Warning: Removed 78 row(s) containing missing values (geom_path).
-
-    ## Warning: Removed 156 row(s) containing missing values (geom_path).
-
 ![](Elife-ERA-codes_files/figure-gfm/fig%20A5.2-1.png)<!-- -->
 
 ``` r
@@ -3598,164 +3480,46 @@ dd$limits["Adjust to","Age"] <- 10
 
 dat_m1 <- get_pred1(out="sev.only", bio="VCAM", age=10, dat=dat1) %>% rename(value=VCAM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m2 <- get_pred1(out="sev.only", bio="SDC", age=10, dat=dat1) %>% rename(value=SDC) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m3 <- get_pred1(out="sev.only", bio="Ang", age=10, dat=dat1) %>% rename(value=Ang) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m4 <- get_pred1(out="sev.only", bio="IL8", age=10, dat=dat1) %>% rename(value=IL8) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m5 <- get_pred1(out="sev.only", bio="IP10", age=10, dat=dat1) %>% rename(value=IP10) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m6 <- get_pred1(out="sev.only", bio="IL1RA", age=10, dat=dat1) %>% rename(value=IL1RA) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m7 <- get_pred1(out="sev.only", bio="CD163", age=10, dat=dat1) %>% rename(value=CD163) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m8 <- get_pred1(out="sev.only", bio="TREM", age=10, dat=dat1) %>% rename(value=TREM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m9 <- get_pred1(out="sev.only", bio="Fer", age=10, dat=dat1) %>% rename(value=Fer) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m10 <- get_pred1(out="sev.only", bio="CRP", age=10, dat=dat1) %>% rename(value=CRP) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
 
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg1 <- get_pred2(out="sev.only", bio="VCAM", age=10, dat=dat1) %>% rename(value=VCAM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg2 <- get_pred2(out="sev.only", bio="SDC", age=10, dat=dat1) %>% rename(value=SDC) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg3 <- get_pred2(out="sev.only", bio="Ang", age=10, dat=dat1) %>% rename(value=Ang) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg4 <- get_pred2(out="sev.only", bio="IL8", age=10, dat=dat1) %>% rename(value=IL8) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg5 <- get_pred2(out="sev.only", bio="IP10", age=10, dat=dat1) %>% rename(value=IP10) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg6 <- get_pred2(out="sev.only", bio="IL1RA", age=10, dat=dat1) %>% rename(value=IL1RA) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg7 <- get_pred2(out="sev.only", bio="CD163", age=10, dat=dat1) %>% rename(value=CD163) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg8 <- get_pred2(out="sev.only", bio="TREM", age=10, dat=dat1) %>% rename(value=TREM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg9 <- get_pred2(out="sev.only", bio="Fer", age=10, dat=dat1) %>% rename(value=Fer) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg10 <- get_pred2(out="sev.only", bio="CRP", age=10, dat=dat1) %>% rename(value=CRP) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
 
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_p1 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10) %>%
   mutate(age = "10 years")
 
@@ -3764,164 +3528,46 @@ dd$limits["Adjust to","Age"] <- 25
 
 dat_m1 <- get_pred1(out="sev.only", bio="VCAM", age=25, dat=dat1) %>% rename(value=VCAM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m2 <- get_pred1(out="sev.only", bio="SDC", age=25, dat=dat1) %>% rename(value=SDC) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m3 <- get_pred1(out="sev.only", bio="Ang", age=25, dat=dat1) %>% rename(value=Ang) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m4 <- get_pred1(out="sev.only", bio="IL8", age=25, dat=dat1) %>% rename(value=IL8) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m5 <- get_pred1(out="sev.only", bio="IP10", age=25, dat=dat1) %>% rename(value=IP10) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m6 <- get_pred1(out="sev.only", bio="IL1RA", age=25, dat=dat1) %>% rename(value=IL1RA) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m7 <- get_pred1(out="sev.only", bio="CD163", age=25, dat=dat1) %>% rename(value=CD163) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m8 <- get_pred1(out="sev.only", bio="TREM", age=25, dat=dat1) %>% rename(value=TREM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m9 <- get_pred1(out="sev.only", bio="Fer", age=25, dat=dat1) %>% rename(value=Fer) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m10 <- get_pred1(out="sev.only", bio="CRP", age=25, dat=dat1) %>% rename(value=CRP) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
 
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg1 <- get_pred2(out="sev.only", bio="VCAM", age=25, dat=dat1) %>% rename(value=VCAM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg2 <- get_pred2(out="sev.only", bio="SDC", age=25, dat=dat1) %>% rename(value=SDC) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg3 <- get_pred2(out="sev.only", bio="Ang", age=25, dat=dat1) %>% rename(value=Ang) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg4 <- get_pred2(out="sev.only", bio="IL8", age=25, dat=dat1) %>% rename(value=IL8) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg5 <- get_pred2(out="sev.only", bio="IP10", age=25, dat=dat1) %>% rename(value=IP10) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg6 <- get_pred2(out="sev.only", bio="IL1RA", age=25, dat=dat1) %>% rename(value=IL1RA) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg7 <- get_pred2(out="sev.only", bio="CD163", age=25, dat=dat1) %>% rename(value=CD163) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg8 <- get_pred2(out="sev.only", bio="TREM", age=25, dat=dat1) %>% rename(value=TREM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg9 <- get_pred2(out="sev.only", bio="Fer", age=25, dat=dat1) %>% rename(value=Fer) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg10 <- get_pred2(out="sev.only", bio="CRP", age=25, dat=dat1) %>% rename(value=CRP) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
 
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_p2 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10) %>%
   mutate(age = "25 years")
 
@@ -4070,10 +3716,6 @@ p.6.10 <- ggplot(dat_6_10, aes(x=value)) +
 p61 <- gridExtra::grid.arrange(p.1.5, p.6.10, nrow=2, heights=c(1,.85))
 ```
 
-    ## Warning: Removed 104 row(s) containing missing values (geom_path).
-
-    ## Warning: Removed 84 row(s) containing missing values (geom_path).
-
 ![](Elife-ERA-codes_files/figure-gfm/fig%20A6.1-1.png)<!-- -->
 
 ``` r
@@ -4093,164 +3735,46 @@ dd$limits["Adjust to","Age"] <- 10
 
 dat_m1 <- get_pred1(out="sev.or.ws", bio="VCAM", age=10, dat=dat1) %>% rename(value=VCAM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m2 <- get_pred1(out="sev.or.ws", bio="SDC", age=10, dat=dat1) %>% rename(value=SDC) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m3 <- get_pred1(out="sev.or.ws", bio="Ang", age=10, dat=dat1) %>% rename(value=Ang) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m4 <- get_pred1(out="sev.or.ws", bio="IL8", age=10, dat=dat1) %>% rename(value=IL8) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m5 <- get_pred1(out="sev.or.ws", bio="IP10", age=10, dat=dat1) %>% rename(value=IP10) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m6 <- get_pred1(out="sev.or.ws", bio="IL1RA", age=10, dat=dat1) %>% rename(value=IL1RA) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m7 <- get_pred1(out="sev.or.ws", bio="CD163", age=10, dat=dat1) %>% rename(value=CD163) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m8 <- get_pred1(out="sev.or.ws", bio="TREM", age=10, dat=dat1) %>% rename(value=TREM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m9 <- get_pred1(out="sev.or.ws", bio="Fer", age=10, dat=dat1) %>% rename(value=Fer) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m10 <- get_pred1(out="sev.or.ws", bio="CRP", age=10, dat=dat1) %>% rename(value=CRP) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
 
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg1 <- get_pred2(out="sev.or.ws", bio="VCAM", age=10, dat=dat1) %>% rename(value=VCAM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg2 <- get_pred2(out="sev.or.ws", bio="SDC", age=10, dat=dat1) %>% rename(value=SDC) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg3 <- get_pred2(out="sev.or.ws", bio="Ang", age=10, dat=dat1) %>% rename(value=Ang) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg4 <- get_pred2(out="sev.or.ws", bio="IL8", age=10, dat=dat1) %>% rename(value=IL8) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg5 <- get_pred2(out="sev.or.ws", bio="IP10", age=10, dat=dat1) %>% rename(value=IP10) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg6 <- get_pred2(out="sev.or.ws", bio="IL1RA", age=10, dat=dat1) %>% rename(value=IL1RA) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg7 <- get_pred2(out="sev.or.ws", bio="CD163", age=10, dat=dat1) %>% rename(value=CD163) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg8 <- get_pred2(out="sev.or.ws", bio="TREM", age=10, dat=dat1) %>% rename(value=TREM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg9 <- get_pred2(out="sev.or.ws", bio="Fer", age=10, dat=dat1) %>% rename(value=Fer) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg10 <- get_pred2(out="sev.or.ws", bio="CRP", age=10, dat=dat1) %>% rename(value=CRP) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
 
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_p1 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10) %>%
   mutate(age = "10 years")
 
@@ -4259,164 +3783,46 @@ dd$limits["Adjust to","Age"] <- 25
 
 dat_m1 <- get_pred1(out="sev.or.ws", bio="VCAM", age=25, dat=dat1) %>% rename(value=VCAM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m2 <- get_pred1(out="sev.or.ws", bio="SDC", age=25, dat=dat1) %>% rename(value=SDC) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m3 <- get_pred1(out="sev.or.ws", bio="Ang", age=25, dat=dat1) %>% rename(value=Ang) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m4 <- get_pred1(out="sev.or.ws", bio="IL8", age=25, dat=dat1) %>% rename(value=IL8) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m5 <- get_pred1(out="sev.or.ws", bio="IP10", age=25, dat=dat1) %>% rename(value=IP10) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m6 <- get_pred1(out="sev.or.ws", bio="IL1RA", age=25, dat=dat1) %>% rename(value=IL1RA) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m7 <- get_pred1(out="sev.or.ws", bio="CD163", age=25, dat=dat1) %>% rename(value=CD163) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m8 <- get_pred1(out="sev.or.ws", bio="TREM", age=25, dat=dat1) %>% rename(value=TREM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m9 <- get_pred1(out="sev.or.ws", bio="Fer", age=25, dat=dat1) %>% rename(value=Fer) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m10 <- get_pred1(out="sev.or.ws", bio="CRP", age=25, dat=dat1) %>% rename(value=CRP) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
 
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg1 <- get_pred2(out="sev.or.ws", bio="VCAM", age=25, dat=dat1) %>% rename(value=VCAM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg2 <- get_pred2(out="sev.or.ws", bio="SDC", age=25, dat=dat1) %>% rename(value=SDC) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg3 <- get_pred2(out="sev.or.ws", bio="Ang", age=25, dat=dat1) %>% rename(value=Ang) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg4 <- get_pred2(out="sev.or.ws", bio="IL8", age=25, dat=dat1) %>% rename(value=IL8) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg5 <- get_pred2(out="sev.or.ws", bio="IP10", age=25, dat=dat1) %>% rename(value=IP10) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg6 <- get_pred2(out="sev.or.ws", bio="IL1RA", age=25, dat=dat1) %>% rename(value=IL1RA) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg7 <- get_pred2(out="sev.or.ws", bio="CD163", age=25, dat=dat1) %>% rename(value=CD163) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg8 <- get_pred2(out="sev.or.ws", bio="TREM", age=25, dat=dat1) %>% rename(value=TREM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg9 <- get_pred2(out="sev.or.ws", bio="Fer", age=25, dat=dat1) %>% rename(value=Fer) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg10 <- get_pred2(out="sev.or.ws", bio="CRP", age=25, dat=dat1) %>% rename(value=CRP) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
 
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_p2 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10) %>%
   mutate(age = "25 years")
 
@@ -4561,10 +3967,6 @@ p.6.10 <- ggplot(dat_6_10, aes(x=value)) +
 p62 <- gridExtra::grid.arrange(p.1.5, p.6.10, nrow=2, heights=c(1,.85))
 ```
 
-    ## Warning: Removed 84 row(s) containing missing values (geom_path).
-
-    ## Warning: Removed 84 row(s) containing missing values (geom_path).
-
 ![](Elife-ERA-codes_files/figure-gfm/fig%20A6.2-1.png)<!-- -->
 
 ``` r
@@ -4584,164 +3986,46 @@ dd$limits["Adjust to","Age"] <- 10
 
 dat_m1 <- get_pred1(out="hospital", bio="VCAM", age=10, dat=dat1) %>% rename(value=VCAM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m2 <- get_pred1(out="hospital", bio="SDC", age=10, dat=dat1) %>% rename(value=SDC) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m3 <- get_pred1(out="hospital", bio="Ang", age=10, dat=dat1) %>% rename(value=Ang) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m4 <- get_pred1(out="hospital", bio="IL8", age=10, dat=dat1) %>% rename(value=IL8) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m5 <- get_pred1(out="hospital", bio="IP10", age=10, dat=dat1) %>% rename(value=IP10) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m6 <- get_pred1(out="hospital", bio="IL1RA", age=10, dat=dat1) %>% rename(value=IL1RA) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m7 <- get_pred1(out="hospital", bio="CD163", age=10, dat=dat1) %>% rename(value=CD163) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m8 <- get_pred1(out="hospital", bio="TREM", age=10, dat=dat1) %>% rename(value=TREM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m9 <- get_pred1(out="hospital", bio="Fer", age=10, dat=dat1) %>% rename(value=Fer) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m10 <- get_pred1(out="hospital", bio="CRP", age=10, dat=dat1) %>% rename(value=CRP) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
 
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg1 <- get_pred2(out="hospital", bio="VCAM", age=10, dat=dat1) %>% rename(value=VCAM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg2 <- get_pred2(out="hospital", bio="SDC", age=10, dat=dat1) %>% rename(value=SDC) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg3 <- get_pred2(out="hospital", bio="Ang", age=10, dat=dat1) %>% rename(value=Ang) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg4 <- get_pred2(out="hospital", bio="IL8", age=10, dat=dat1) %>% rename(value=IL8) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg5 <- get_pred2(out="hospital", bio="IP10", age=10, dat=dat1) %>% rename(value=IP10) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg6 <- get_pred2(out="hospital", bio="IL1RA", age=10, dat=dat1) %>% rename(value=IL1RA) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg7 <- get_pred2(out="hospital", bio="CD163", age=10, dat=dat1) %>% rename(value=CD163) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg8 <- get_pred2(out="hospital", bio="TREM", age=10, dat=dat1) %>% rename(value=TREM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg9 <- get_pred2(out="hospital", bio="Fer", age=10, dat=dat1) %>% rename(value=Fer) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg10 <- get_pred2(out="hospital", bio="CRP", age=10, dat=dat1) %>% rename(value=CRP) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="Under 15"))
-```
 
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_p1 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10) %>%
   mutate(age = "10 years")
 
@@ -4750,164 +4034,46 @@ dd$limits["Adjust to","Age"] <- 25
 
 dat_m1 <- get_pred1(out="hospital", bio="VCAM", age=25, dat=dat1) %>% rename(value=VCAM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m2 <- get_pred1(out="hospital", bio="SDC", age=25, dat=dat1) %>% rename(value=SDC) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m3 <- get_pred1(out="hospital", bio="Ang", age=25, dat=dat1) %>% rename(value=Ang) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m4 <- get_pred1(out="hospital", bio="IL8", age=25, dat=dat1) %>% rename(value=IL8) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m5 <- get_pred1(out="hospital", bio="IP10", age=25, dat=dat1) %>% rename(value=IP10) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m6 <- get_pred1(out="hospital", bio="IL1RA", age=25, dat=dat1) %>% rename(value=IL1RA) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m7 <- get_pred1(out="hospital", bio="CD163", age=25, dat=dat1) %>% rename(value=CD163) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m8 <- get_pred1(out="hospital", bio="TREM", age=25, dat=dat1) %>% rename(value=TREM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m9 <- get_pred1(out="hospital", bio="Fer", age=25, dat=dat1) %>% rename(value=Fer) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_m10 <- get_pred1(out="hospital", bio="CRP", age=25, dat=dat1) %>% rename(value=CRP) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
 
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg1 <- get_pred2(out="hospital", bio="VCAM", age=25, dat=dat1) %>% rename(value=VCAM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg2 <- get_pred2(out="hospital", bio="SDC", age=25, dat=dat1) %>% rename(value=SDC) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg3 <- get_pred2(out="hospital", bio="Ang", age=25, dat=dat1) %>% rename(value=Ang) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg4 <- get_pred2(out="hospital", bio="IL8", age=25, dat=dat1) %>% rename(value=IL8) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg5 <- get_pred2(out="hospital", bio="IP10", age=25, dat=dat1) %>% rename(value=IP10) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg6 <- get_pred2(out="hospital", bio="IL1RA", age=25, dat=dat1) %>% rename(value=IL1RA) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg7 <- get_pred2(out="hospital", bio="CD163", age=25, dat=dat1) %>% rename(value=CD163) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg8 <- get_pred2(out="hospital", bio="TREM", age=25, dat=dat1) %>% rename(value=TREM) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg9 <- get_pred2(out="hospital", bio="Fer", age=25, dat=dat1) %>% rename(value=Fer) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_mg10 <- get_pred2(out="hospital", bio="CRP", age=25, dat=dat1) %>% rename(value=CRP) %>% 
   select(value, yhat, lower, upper, biomarker, model) %>% slice(which(dat1$age15=="15 and above"))
-```
 
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 dat_p2 <- rbind(dat_m1,dat_mg1, dat_m2,dat_mg2, dat_m3,dat_mg3, dat_m4,dat_mg4, dat_m5,dat_mg5, dat_m6,dat_mg6, dat_m7,dat_mg7, dat_m8,dat_mg8, dat_m9,dat_mg9, dat_m10,dat_mg10) %>%
   mutate(age = "25 years")
 
@@ -5052,10 +4218,6 @@ p.6.10 <- ggplot(dat_6_10, aes(x=value)) +
 p63 <- gridExtra::grid.arrange(p.1.5, p.6.10, nrow=2, heights=c(1,.85))
 ```
 
-    ## Warning: Removed 84 row(s) containing missing values (geom_path).
-
-    ## Warning: Removed 84 row(s) containing missing values (geom_path).
-
 ![](Elife-ERA-codes_files/figure-gfm/fig%20A6.3-1.png)<!-- -->
 
 ``` r
@@ -5098,729 +4260,6 @@ tmp1 <- data.frame(
            lo2a = get_est2(out="sev.only", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=25, dat=dat1),
            up2a = get_est2(out="sev.only", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=25, dat=dat1))) %>%
   ungroup()
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 for (i in 6:17) {tmp1[[i]] <- sprintf("%.2f", round(tmp1[[i]],2))}
 
 # Get p-values
@@ -5836,129 +4275,6 @@ tmp2 <- data.frame(
            p.g2 = get_est2(out="sev.only", bio=.$bio, est="p", dat=dat1),
            p.g2_int = get_est2(out="sev.only", bio=.$bio, est="p int", dat=dat1))) %>%
   ungroup()
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 for (i in 4:7) {tmp2[[i]] <- ifelse(tmp2[[i]]<0.001, "<0.001", sprintf("%.3f", round(tmp2[[i]],3)))}  
 
 # Combine results
@@ -6030,729 +4346,6 @@ tmp1 <- data.frame(
            lo2a = get_est2(out="sev.or.ws", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=25, dat=dat1),
            up2a = get_est2(out="sev.or.ws", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=25, dat=dat1))) %>%
   ungroup()
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 for (i in 6:17) {tmp1[[i]] <- sprintf("%.2f", round(tmp1[[i]],2))}
 
 # Get p-values
@@ -6768,129 +4361,6 @@ tmp2 <- data.frame(
            p.g3 = get_est2(out="sev.or.ws", bio=.$bio, est="p", dat=dat1),
            p.g3_int = get_est2(out="sev.or.ws", bio=.$bio, est="p int", dat=dat1))) %>%
   ungroup()
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 for (i in 4:7) {tmp2[[i]] <- ifelse(tmp2[[i]]<0.001, "<0.001", sprintf("%.3f", round(tmp2[[i]],3)))}  
 
 # Combine results
@@ -6979,729 +4449,6 @@ tmp1 <- data.frame(
            lo2a = get_est2(out="hospital", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="loCI", age=25, dat=dat1),
            up2a = get_est2(out="hospital", bio=.$bio, ref1=.$ref1, ref2=.$ref2, est="upCI", age=25, dat=dat1))) %>%
   ungroup()
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 for (i in 6:17) {tmp1[[i]] <- sprintf("%.2f", round(tmp1[[i]],2))}
 
 # Get p-values
@@ -7717,129 +4464,6 @@ tmp2 <- data.frame(
            p.g4 = get_est2(out="hospital", bio=.$bio, est="p", dat=dat1),
            p.g4_int = get_est2(out="hospital", bio=.$bio, est="p int", dat=dat1))) %>%
   ungroup()
-```
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-    ## Warning in lrm(formula(f), data = dat, weights = ipwsd, x = T, y = T): currently
-    ## weights are ignored in model validation and bootstrapping lrm fits
-
-``` r
 for (i in 4:7) {tmp2[[i]] <- ifelse(tmp2[[i]]<0.001, "<0.001", sprintf("%.3f", round(tmp2[[i]],3)))}  
 
 # Combine results
@@ -7920,15 +4544,7 @@ boot_modfreq <- data.frame(boot_var) %>%
   arrange(desc(count)) %>%
   slice(1:20) %>%
   as.data.frame(.)
-```
 
-    ## Warning: `group_by_()` was deprecated in dplyr 0.7.0.
-    ## Please use `group_by()` instead.
-    ## See vignette('programming') for more help
-
-    ## `summarise()` has grouped output by 'VCAM', 'SDC', 'Ang', 'IL8', 'IP10', 'IL1RA', 'CD163', 'TREM', 'Fer'. You can override using the `.groups` argument.
-
-``` r
 out <- boot_modfreq
 for (i in 1:(ncol(out)-5)) {
   out[,i] <- ifelse(out[,i]==0, NA, "+")
@@ -7977,11 +4593,6 @@ pred_name <- names(full_est)[-1]
 
 # Selected model (for bootstrap results) ---------------------------
 sel_m <- dredge(full_mod, rank="AIC")
-```
-
-    ## Fixed term is "(Intercept)"
-
-``` r
 sel_var <- matrix(0, ncol = length(pred), nrow = 1, dimnames = list(NULL, pred))
 sel_var_tmp <- attr(get.models(sel_m, 1)[[1]]$terms, "term.labels")
 
@@ -8067,11 +4678,7 @@ boot_modfreq <- data.frame(boot_var) %>%
   arrange(desc(count)) %>%
   slice(1:20) %>%
   as.data.frame(.)
-```
 
-    ## `summarise()` has grouped output by 'VCAM', 'SDC', 'Ang', 'IL8', 'ns1.IP10.', 'IL1RA', 'CD163', 'TREM', 'Fer'. You can override using the `.groups` argument.
-
-``` r
 out <- boot_modfreq
 for (i in 1:(ncol(out)-5)) {
   out[,i] <- ifelse(out[,i]==0, NA, "+")
@@ -8120,11 +4727,6 @@ pred_name <- names(full_est)[-1]
 
 # Selected model (for bootstrap results) ---------------------------
 sel_m <- dredge(full_mod, rank="AIC")
-```
-
-    ## Fixed term is "(Intercept)"
-
-``` r
 sel_var <- matrix(0, ncol = length(pred), nrow = 1, dimnames = list(NULL, pred))
 sel_var_tmp <- attr(get.models(sel_m, 1)[[1]]$terms, "term.labels")
 
@@ -8441,10 +5043,6 @@ p.6.11 <- ggplot(dat_6_11, aes(x=value)) +
 p81 <- gridExtra::grid.arrange(p.1.5, p.6.11, nrow=2, heights=c(1,.86))
 ```
 
-    ## Warning: Removed 84 row(s) containing missing values (geom_path).
-
-    ## Warning: Removed 80 row(s) containing missing values (geom_path).
-
 ![](Elife-ERA-codes_files/figure-gfm/fig%20A8.1-1.png)<!-- -->
 
 ``` r
@@ -8589,15 +5187,7 @@ for (i in 1:5) {
   sel_mod <- glm(formula, data = dat1c, family = binomial, x = T, y = T)
   sel_var[i, ncol(sel_var)] <- AIC(sel_mod)
 }
-```
 
-    ## Fixed term is "(Intercept)"
-    ## Fixed term is "(Intercept)"
-    ## Fixed term is "(Intercept)"
-    ## Fixed term is "(Intercept)"
-    ## Fixed term is "(Intercept)"
-
-``` r
 # Report results --------------------------------------------------
 out1 <- as.data.frame(sel_var) %>% mutate(AIC = round(aic,1)) %>% select(-aic)
 for (i in 1:(ncol(out1)-1)) {out1[,i] <- ifelse(out1[,i]==0, NA, "+")}
@@ -8653,15 +5243,7 @@ for (i in 1:5) {
   sel_mod <- glm(formula, data = dat1a, family = binomial, x = T, y = T)
   sel_var[i, ncol(sel_var)] <- AIC(sel_mod)
 }
-```
 
-    ## Fixed term is "(Intercept)"
-    ## Fixed term is "(Intercept)"
-    ## Fixed term is "(Intercept)"
-    ## Fixed term is "(Intercept)"
-    ## Fixed term is "(Intercept)"
-
-``` r
 # Report results --------------------------------------------------
 out1 <- as.data.frame(sel_var) %>% mutate(AIC = round(aic,1)) %>% select(-aic)
 for (i in 1:(ncol(out1)-1)) {out1[,i] <- ifelse(out1[,i]==0, NA, "+")}
