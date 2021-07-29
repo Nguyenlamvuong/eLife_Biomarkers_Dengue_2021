@@ -5,7 +5,7 @@ date: "29-Jul-2021"
 output: github_document
 ---
 
-```{r load packages, message=FALSE, warning=FALSE, include=FALSE}
+```{r load packages, echo=TRUE}
 library(tidyverse)
 library(gtsummary) # need to install package 'flextable'
 library(rms)
@@ -18,7 +18,7 @@ theme_set(theme_bw()) # I love black & white theme
 options(na.action = "na.fail") # for 'dredge' function [MuMIn]
 ```
 
-```{r load data, message=FALSE, warning=FALSE, include=FALSE}
+```{r load data, echo=TRUE}
 # Full data
 dat0 <- read_csv("Dengue_Biomarkers_data_27Jul2021.csv") %>%
   mutate(group2 = factor(sev.or.inte, levels=c(0,1), labels=c("Uncomplicated dengue","Severe/moderate dengue")),
@@ -89,7 +89,7 @@ dat_plot <- bind_rows(tmp1, tmp2) %>%
 
 ###########################################################################################
 #### Table 1. Summary of clinical data by primary outcome.
-```{r table 1, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table 1, echo=TRUE}
 # All patients
 t1 <- dat %>%
   select(group2, Country, Age, Sex, Day, Serotype, Serology, Obesity, Diabetes, WHO2009, hospital) %>%
@@ -135,7 +135,7 @@ tbl_merge(tbls = list(t1, t2, t3),
 
 ###########################################################################################
 #### Figure 2. Biomarker levels by groups.
-```{r fig 2, echo=FALSE, message=FALSE, warning=FALSE}
+```{r fig 2, echo=TRUE, fig.height=8, fig.width=11}
 tick <- c(0,1,4,10,40,100,200,400,1000,4000,10000,20000,40000,70000) # for y-axis tick labels
 
 p2 <- dat_plot %>%
@@ -153,7 +153,7 @@ p2
 
 ###########################################################################################
 #### Table 2. Results from models for the primary endpoint (severe or moderate dengue).
-```{r table 2, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table 2, echo=TRUE}
 # Set datadist for 'lrm' function [rms]
 dd <- datadist(dat1); options(datadist="dd")
 
@@ -221,7 +221,7 @@ knitr::kable(res1)
 
 ###########################################################################################
 #### Figure 3. Results from models for the primary endpoint (severe or moderate dengue).
-```{r fig 3, echo=FALSE, message=FALSE, warning=FALSE}
+```{r fig 3, echo=TRUE, fig.height=8, fig.width=11}
 # Set datadist for 'lrm' function [rms]
 dd <- datadist(dat1); options(datadist="dd")
 
@@ -465,7 +465,7 @@ p3 <- gridExtra::grid.arrange(p.1.5, p.6.10, nrow=2, heights=c(1,.86))
 
 ###########################################################################################
 #### Table 3. Best combinations of biomarkers associated with severe or moderate dengue for children.
-```{r table 3, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table 3, echo=TRUE}
 # EPV --------------------------------------------------------------
 pred <- c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP")
 
@@ -508,7 +508,7 @@ knitr::kable(out2)
 
 ###########################################################################################
 #### Table 4. Best combinations of biomarkers associated with severe or moderate dengue for adults.
-```{r table 4, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table 4, echo=TRUE}
 # EPV --------------------------------------------------------------
 pred <- c("VCAM", "SDC", "Ang", "IL8", "ns1(IP10)", "IL1RA", "CD163", "TREM", "Fer", "CRP")
 
@@ -551,7 +551,7 @@ knitr::kable(out2)
 
 ###########################################################################################
 #### Appendix 3. Statistical analysis. Analysis to find the best combination of biomarkers to predict the primary endpoint (aim #2) - Step #1 - AICs of models
-```{r Appendix 3, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Appendix 3, echo=TRUE}
 # For children
 screen_child <- data.frame(bio = c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP")) %>%
   group_by(bio) %>%
@@ -583,7 +583,7 @@ knitr::kable(out)
 
 ###########################################################################################
 #### Appendix 4—table 1. Summary of clinical phenotype of the primary endpoint.
-```{r table A4.1, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table A4.1, echo=TRUE}
 dat %>%
   filter(sev.or.inte == 1) %>%
   mutate(age15 = factor(age15, levels = c("No", "Yes"), labels = c("Children", "Adults")),
@@ -605,7 +605,7 @@ dat %>%
 
 ###########################################################################################
 #### Appendix 4—table 2. Summary of biomarkers’ data (at enrollment)
-```{r table A4.2a, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table A4.2a, echo=TRUE}
 # All patients
 t1 <- dat0 %>%
   filter(Time == "Enrolment") %>%
@@ -617,7 +617,8 @@ t1 <- dat0 %>%
               label = list(VCAM1 ~ "VCAM-1 (ng/ml)", SDC1 ~ "SDC-1 (pg/ml)", Ang2 ~ "Ang-2 (pg/ml)", IL8 ~ "IL-8 (pg/ml)",
                            IP10 ~ "IP-10 (pg/ml)", IL1RA ~ "IL-1RA (pg/ml)", CD163 ~ "sCD163 (ng/ml)", TREM1 ~ "sTREM-1 (pg/ml)",
                            Fer ~ "Ferritin (ng/ml)", CRP ~ "CRP (mg/l)", viremia ~ "Viremia (10^6 copies/ml)")) %>%
-  modify_header(label = "", stat_by = "**{level} (N={n})**")
+  modify_header(label = "", stat_by = "**{level} (N={n})**") %>%
+  modify_footnote(update = everything() ~ NA)
 
 # Children (<15 years of age)
 t2 <- dat0 %>%
@@ -631,7 +632,8 @@ t2 <- dat0 %>%
               label = list(VCAM1 ~ "VCAM-1 (ng/ml)", SDC1 ~ "SDC-1 (pg/ml)", Ang2 ~ "Ang-2 (pg/ml)", IL8 ~ "IL-8 (pg/ml)",
                            IP10 ~ "IP-10 (pg/ml)", IL1RA ~ "IL-1RA (pg/ml)", CD163 ~ "sCD163 (ng/ml)", TREM1 ~ "sTREM-1 (pg/ml)",
                            Fer ~ "Ferritin (ng/ml)", CRP ~ "CRP (mg/l)", viremia ~ "Viremia (10^6 copies/ml)")) %>%
-  modify_header(label = "", stat_by = "**{level} (N={n})**")
+  modify_header(label = "", stat_by = "**{level} (N={n})**") %>%
+  modify_footnote(update = everything() ~ NA)
 
 # Adults (>=15 years of age)
 t3 <- dat0 %>%
@@ -645,7 +647,8 @@ t3 <- dat0 %>%
               label = list(VCAM1 ~ "VCAM-1 (ng/ml)", SDC1 ~ "SDC-1 (pg/ml)", Ang2 ~ "Ang-2 (pg/ml)", IL8 ~ "IL-8 (pg/ml)",
                            IP10 ~ "IP-10 (pg/ml)", IL1RA ~ "IL-1RA (pg/ml)", CD163 ~ "sCD163 (ng/ml)", TREM1 ~ "sTREM-1 (pg/ml)",
                            Fer ~ "Ferritin (ng/ml)", CRP ~ "CRP (mg/l)", viremia ~ "Viremia (10^6 copies/ml)")) %>%
-  modify_header(label = "", stat_by = "**{level} (N={n})**")
+  modify_header(label = "", stat_by = "**{level} (N={n})**") %>%
+  modify_footnote(update = everything() ~ NA)
 
 # Merge tables
 tbl_merge(tbls = list(t1, t2, t3),
@@ -653,7 +656,7 @@ tbl_merge(tbls = list(t1, t2, t3),
 ```
 
 #### Appendix 4—table 2. Summary of biomarkers’ data (at follow-up)
-```{r table A4.2b, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table A4.2b, echo=TRUE}
 # All patients
 t1 <- dat0 %>%
   filter(Time == "Follow up") %>%
@@ -664,7 +667,8 @@ t1 <- dat0 %>%
               label = list(VCAM1 ~ "VCAM-1 (ng/ml)", SDC1 ~ "SDC-1 (pg/ml)", Ang2 ~ "Ang-2 (pg/ml)", IL8 ~ "IL-8 (pg/ml)",
                            IP10 ~ "IP-10 (pg/ml)", IL1RA ~ "IL-1RA (pg/ml)", CD163 ~ "sCD163 (ng/ml)", TREM1 ~ "sTREM-1 (pg/ml)",
                            Fer ~ "Ferritin (ng/ml)", CRP ~ "CRP (mg/l)")) %>%
-  modify_header(label = "", stat_by = "**{level} (N={n})**")
+  modify_header(label = "", stat_by = "**{level} (N={n})**") %>%
+  modify_footnote(update = everything() ~ NA)
 
 # Children (<15 years of age)
 t2 <- dat0 %>%
@@ -677,7 +681,8 @@ t2 <- dat0 %>%
               label = list(VCAM1 ~ "VCAM-1 (ng/ml)", SDC1 ~ "SDC-1 (pg/ml)", Ang2 ~ "Ang-2 (pg/ml)", IL8 ~ "IL-8 (pg/ml)",
                            IP10 ~ "IP-10 (pg/ml)", IL1RA ~ "IL-1RA (pg/ml)", CD163 ~ "sCD163 (ng/ml)", TREM1 ~ "sTREM-1 (pg/ml)",
                            Fer ~ "Ferritin (ng/ml)", CRP ~ "CRP (mg/l)")) %>%
-  modify_header(label = "", stat_by = "**{level} (N={n})**")
+  modify_header(label = "", stat_by = "**{level} (N={n})**") %>%
+  modify_footnote(update = everything() ~ NA)
 
 # Adults (>=15 years of age)
 t3 <- dat0 %>%
@@ -690,7 +695,8 @@ t3 <- dat0 %>%
               label = list(VCAM1 ~ "VCAM-1 (ng/ml)", SDC1 ~ "SDC-1 (pg/ml)", Ang2 ~ "Ang-2 (pg/ml)", IL8 ~ "IL-8 (pg/ml)",
                            IP10 ~ "IP-10 (pg/ml)", IL1RA ~ "IL-1RA (pg/ml)", CD163 ~ "sCD163 (ng/ml)", TREM1 ~ "sTREM-1 (pg/ml)",
                            Fer ~ "Ferritin (ng/ml)", CRP ~ "CRP (mg/l)")) %>%
-  modify_header(label = "", stat_by = "**{level} (N={n})**")
+  modify_header(label = "", stat_by = "**{level} (N={n})**") %>%
+  modify_footnote(update = everything() ~ NA)
 
 # Merge tables
 tbl_merge(tbls = list(t1, t2, t3),
@@ -699,7 +705,7 @@ tbl_merge(tbls = list(t1, t2, t3),
 
 ###########################################################################################
 #### Appendix 4-figure 1. Biomarker levels by individual.
-```{r fig A4.1, echo=FALSE, message=FALSE, warning=FALSE}
+```{r fig A4.1, echo=TRUE, fig.height=6.2, fig.width=8.5}
 tick <- c(0,1,10,40,100,200,400,1000,4000,10000,20000,40000,70000) # for y-axis tick labels
 
 p41 <- ggplot(dat_plot, aes(Day, Result^(1/4), color=group2)) +
@@ -719,7 +725,7 @@ p41
 
 ###########################################################################################
 #### Appendix 4—figure 2. Pairwise correlation of biomarker levels at enrollment and age.
-```{r fig A4.2, echo=FALSE, message=FALSE, warning=FALSE}
+```{r fig A4.2, echo=TRUE, fig.height=9.5, fig.width=9.5}
 collabel <- c("Age", "VCAM-1", "SDC-1", "Ang-2", "IL-8", "IP-10", "IL-1RA", "sCD163", "sTREM-1", "Ferritin", "CRP", "Viremia")
 
 # Change biomarker's values to log-2 and viremia to log
@@ -749,7 +755,7 @@ p42
 
 ###########################################################################################
 #### Appendix 5—figure 1. Results from single models for severe/moderate dengue with the interaction with serotype.
-```{r fig A5.1, echo=FALSE, message=FALSE, warning=FALSE}
+```{r fig A5.1, echo=TRUE, fig.height=6.2, fig.width=8.5}
 # Set datadist for 'lrm' function [rms]
 dd <- datadist(dat1); options(datadist="dd")
 
@@ -997,7 +1003,7 @@ p51 <- gridExtra::grid.arrange(p.1.5, p.6.10, nrow=2, heights=c(1,.86))
 
 ###########################################################################################
 #### Appendix 5—figure 2. Results from global model for severe/moderate dengue with the interaction with serotype.
-```{r fig A5.2, echo=FALSE, message=FALSE, warning=FALSE}
+```{r fig A5.2, echo=TRUE, fig.height=6.2, fig.width=8.5}
 # Set datadist for 'lrm' function [rms]
 dd <- datadist(dat1); options(datadist="dd")
 
@@ -1246,7 +1252,7 @@ p52 <- gridExtra::grid.arrange(p.1.5, p.6.10, nrow=2, heights=c(1,.86))
 
 ###########################################################################################
 #### Appendix 5—table 1. Results from single models for severe/moderate dengue with the interaction with serotype.
-```{r table A5.1, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table A5.1, echo=TRUE}
 # Set datadist for 'lrm' function [rms]
 dd <- datadist(dat1); options(datadist="dd")
 
@@ -1315,7 +1321,7 @@ knitr::kable(res1)
 
 ###########################################################################################
 #### Appendix 5—table 2. Results from global model for severe/moderate dengue with the interaction with serotype.
-```{r table A5.2, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table A5.2, echo=TRUE}
 # Set datadist for 'lrm' function [rms]
 dd <- datadist(dat1); options(datadist="dd")
 
@@ -1384,7 +1390,7 @@ knitr::kable(res2)
 
 ###########################################################################################
 #### Appendix 6—figure 1. Results from models for severe dengue endpoint.
-```{r fig A6.1, echo=FALSE, message=FALSE, warning=FALSE}
+```{r fig A6.1, echo=TRUE, fig.height=6.2, fig.width=8.5}
 # Set datadist for 'lrm' function [rms]
 dd <- datadist(dat1); options(datadist="dd")
 
@@ -1632,7 +1638,7 @@ p61 <- gridExtra::grid.arrange(p.1.5, p.6.10, nrow=2, heights=c(1,.85))
 
 ###########################################################################################
 #### Appendix 6—figure 2. Results from models for severe dengue or dengue with warning signs endpoint.
-```{r fig A6.2, echo=FALSE, message=FALSE, warning=FALSE}
+```{r fig A6.2, echo=TRUE, fig.height=6.2, fig.width=8.5}
 # Set datadist for 'lrm' function [rms]
 dd <- datadist(dat1); options(datadist="dd")
 
@@ -1876,7 +1882,7 @@ p62 <- gridExtra::grid.arrange(p.1.5, p.6.10, nrow=2, heights=c(1,.85))
 
 ###########################################################################################
 #### Appendix 6—figure 3. Results from models for hospitalization endpoint.
-```{r fig A6.3, echo=FALSE, message=FALSE, warning=FALSE}
+```{r fig A6.3, echo=TRUE, fig.height=6.2, fig.width=8.5}
 # Set datadist for 'lrm' function [rms]
 dd <- datadist(dat1); options(datadist="dd")
 
@@ -2120,7 +2126,7 @@ p63 <- gridExtra::grid.arrange(p.1.5, p.6.10, nrow=2, heights=c(1,.85))
 
 ###########################################################################################
 #### Appendix 6—table 1. Results from models for severe dengue endpoint.
-```{r table A6.1, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table A6.1, echo=TRUE}
 # Set datadist for 'lrm' function [rms]
 dd <- datadist(dat1); options(datadist="dd")
 
@@ -2191,7 +2197,7 @@ knitr::kable(res2)
 
 ###########################################################################################
 #### Appendix 6—table 2. Results from models for severe dengue or dengue with warning signs endpoint.
-```{r table A6.2, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table A6.2, echo=TRUE}
 # Set datadist for 'lrm' function [rms]
 dd <- datadist(dat1); options(datadist="dd")
 
@@ -2259,7 +2265,7 @@ knitr::kable(res3)
 
 ###########################################################################################
 #### Appendix 6—table 3. Results from models for hospitalization endpoint.
-```{r table A6.3, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table A6.3, echo=TRUE}
 # Set datadist for 'lrm' function [rms]
 dd <- datadist(dat1); options(datadist="dd")
 
@@ -2327,7 +2333,7 @@ knitr::kable(res4)
 
 ###########################################################################################
 #### Appendix 7—table 1. Model selection frequencies for children.
-```{r table A7.1, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table A7.1, echo=TRUE}
 # EPV --------------------------------------------------------------
 pred <- c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP")
 
@@ -2362,7 +2368,7 @@ knitr::kable(out)
 
 ###########################################################################################
 #### Appendix 7—table 2. Model stability for children.
-```{r table A7.2, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table A7.2, echo=TRUE}
 # EPV --------------------------------------------------------------
 pred <- c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP")
 
@@ -2420,7 +2426,7 @@ knitr::kable(overview)
 
 ###########################################################################################
 #### Appendix 7—table 3. Model selection frequencies for adults.
-```{r table A7.3, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table A7.3, echo=TRUE}
 # EPV --------------------------------------------------------------
 pred <- c("VCAM", "SDC", "Ang", "IL8", "ns1(IP10)", "IL1RA", "CD163", "TREM", "Fer", "CRP")
 
@@ -2455,7 +2461,7 @@ knitr::kable(out)
 
 ###########################################################################################
 #### Appendix 7—table 4. Model stability for adults.
-```{r table A7.4, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table A7.4, echo=TRUE}
 # EPV --------------------------------------------------------------
 pred <- c("VCAM", "SDC", "Ang", "IL8", "ns1(IP10)", "IL1RA", "CD163", "TREM", "Fer", "CRP")
 
@@ -2513,7 +2519,7 @@ knitr::kable(overview)
 
 ###########################################################################################
 #### Appendix 8—figure 1. Results from models for severe/moderate dengue including viremia as a potential biomarker.
-```{r fig A8.1, echo=FALSE, message=FALSE, warning=FALSE}
+```{r fig A8.1, echo=TRUE, fig.height=6.2, fig.width=8.5}
 # Set datadist for 'lrm' function [rms]
 dd <- datadist(dat1); options(datadist="dd")
 
@@ -2770,7 +2776,7 @@ p81 <- gridExtra::grid.arrange(p.1.5, p.6.11, nrow=2, heights=c(1,.86))
 
 ###########################################################################################
 #### Appendix 8—table 1. Results from models for severe/moderate dengue including viremia as a potential biomarker.
-```{r table A8.1, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table A8.1, echo=TRUE}
 # Set datadist for 'lrm' function [rms]
 dd <- datadist(dat1); options(datadist="dd")
 
@@ -2843,7 +2849,7 @@ knitr::kable(res1)
 
 ###########################################################################################
 #### Appendix 8—table 2. Best combinations of biomarkers associated with severe or moderate dengue for children.
-```{r table A8.2, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table A8.2, echo=TRUE}
 # EPV --------------------------------------------------------------
 pred <- c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP", "Vir")
 
@@ -2882,7 +2888,7 @@ knitr::kable(out2)
 
 ###########################################################################################
 #### Appendix 8—table 3. Best combinations of biomarkers associated with severe or moderate dengue for adults.
-```{r table A8.3, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table A8.3, echo=TRUE}
 # EPV --------------------------------------------------------------
 pred <- c("VCAM", "SDC", "Ang", "IL8", "ns1(IP10)", "IL1RA", "CD163", "TREM", "Fer", "CRP", "Vir")
 
@@ -2921,7 +2927,7 @@ knitr::kable(out2)
 
 ###########################################################################################
 #### Appendix 9—table 1. Results of variable selection for children.
-```{r table A9.1, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table A9.1, eval=FALSE, include=FALSE}
 # Full model
 pred <- c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", "CRP")
 formula <- paste("sev.or.inte ~", paste(pred, collapse = "+"))
@@ -2991,7 +2997,7 @@ round(posterior_interval(as.matrix(proj2)),1)
 
 ###########################################################################################
 #### Appendix 9—table 2. Results of variable selection for adults.
-```{r table A9.2, echo=FALSE, message=FALSE, warning=FALSE}
+```{r table A9.2, eval=FALSE, include=FALSE}
 # Full model
 pred <- c("VCAM", "SDC", "Ang", "IL8", "ns1(IP10)", "IL1RA", "CD163", "TREM", "Fer", "CRP")
 formula <- paste("sev.or.inte ~", paste(pred, collapse = "+"))
