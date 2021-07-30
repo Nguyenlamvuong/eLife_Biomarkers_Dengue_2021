@@ -2340,12 +2340,11 @@ pred <- c("VCAM", "SDC", "Ang", "IL8", "IP10", "IL1RA", "CD163", "TREM", "Fer", 
 # Bootstrap results ------------------------------------------------
 ## The following codes were modified from Heinze G. et al (https://doi.org/10.1002/bimj.201700067)
 bootnum <- 1000
-boot_var <- matrix(0, ncol = length(pred) + 1, nrow = bootnum, dimnames = list(NULL, c(pred, "aic")))
-load("5a.RData") # Load bootstrap results
+load("bootstrap_results.RData") # Load bootstrap results
 
 # Model frequency
-group_cols <- c(colnames(data.frame(boot_var))[1:length(pred)])
-boot_modfreq <- data.frame(boot_var) %>%
+group_cols <- c(colnames(data.frame(boot_varc))[1:length(pred)])
+boot_modfreq <- data.frame(boot_varc) %>%
   mutate(time = 1) %>%
   group_by_(.dots = group_cols) %>%
   summarise(aic_median = round(median(aic),1),
@@ -2399,23 +2398,20 @@ sel_se[is.na(sel_se)] <- 0
 # Bootstrap results ------------------------------------------------
 ## The following codes were modified from Heinze G. et al (https://doi.org/10.1002/bimj.201700067)
 bootnum <- 1000
-boot_var <- matrix(0, ncol = length(pred) + 1, nrow = bootnum, dimnames = list(NULL, c(pred, "aic")))
-boot_est <-  boot_se <- matrix(0, ncol = length(pred_name) + 1, nrow = bootnum,
-                               dimnames = list(NULL, c("(Intercept)", pred_name)))
-load("5a.RData") # Load bootstrap results
-boot_01 <- (boot_est != 0) * 1
+load("bootstrap_results.RData") # Load bootstrap results
+boot_01 <- (boot_estc != 0) * 1
 boot_inclusion <- apply(boot_01, 2, function(x) sum(x) / length(x) * 100)
 
 ## Overview of estimates and measures
-sqe <- (t(boot_est) - full_est) ^ 2
+sqe <- (t(boot_estc) - full_est) ^ 2
 rmsd <- apply(sqe, 1, function(x) sqrt(mean(x)))
 rmsdratio <- rmsd / full_se
-boot_mean <- apply(boot_est, 2, mean)
+boot_mean <- apply(boot_estc, 2, mean)
 boot_meanratio <- boot_mean / full_est
 boot_relbias <- (boot_meanratio / (boot_inclusion / 100) - 1) * 100
-boot_median <- apply(boot_est, 2, median)
-boot_025per <- apply(boot_est, 2, function(x) quantile(x, 0.025))
-boot_975per <- apply(boot_est, 2, function(x) quantile(x, 0.975))
+boot_median <- apply(boot_estc, 2, median)
+boot_025per <- apply(boot_estc, 2, function(x) quantile(x, 0.025))
+boot_975per <- apply(boot_estc, 2, function(x) quantile(x, 0.975))
   
 overview <- round(cbind(full_est, full_se, boot_inclusion, sel_est, sel_se,  
                         rmsdratio, boot_relbias, boot_median, boot_025per, 
@@ -2433,12 +2429,11 @@ pred <- c("VCAM", "SDC", "Ang", "IL8", "ns1(IP10)", "IL1RA", "CD163", "TREM", "F
 # Bootstrap results ------------------------------------------------
 ## The following codes were modified from Heinze G. et al (https://doi.org/10.1002/bimj.201700067)
 bootnum <- 1000
-boot_var <- matrix(0, ncol = length(pred) + 1, nrow = bootnum, dimnames = list(NULL, c(pred, "aic")))
-load("5c.RData") # Load bootstrap results
+load("bootstrap_results.RData") # Load bootstrap results
 
 ## Model frequency
-group_cols <- c(colnames(data.frame(boot_var))[1:length(pred)])
-boot_modfreq <- data.frame(boot_var) %>%
+group_cols <- c(colnames(data.frame(boot_vara))[1:length(pred)])
+boot_modfreq <- data.frame(boot_vara) %>%
   mutate(time = 1) %>%
   group_by_(.dots = group_cols) %>%
   summarise(aic_median = round(median(aic),1),
@@ -2492,23 +2487,20 @@ sel_se[is.na(sel_se)] <- 0
 # Bootstrap results ------------------------------------------------
 ## The following codes were modified from Heinze G. et al (https://doi.org/10.1002/bimj.201700067)
 bootnum <- 1000
-boot_var <- matrix(0, ncol = length(pred) + 1, nrow = bootnum, dimnames = list(NULL, c(pred, "aic")))
-boot_est <-  boot_se <- matrix(0, ncol = length(pred_name) + 1, nrow = bootnum,
-                               dimnames = list(NULL, c("(Intercept)", pred_name)))
-load("5c.RData") # Load bootstrap results
-boot_01 <- (boot_est != 0) * 1
+load("bootstrap_results.RData") # Load bootstrap results
+boot_01 <- (boot_esta != 0) * 1
 boot_inclusion <- apply(boot_01, 2, function(x) sum(x) / length(x) * 100)
 
 ## Overview of estimates and measures
-sqe <- (t(boot_est) - full_est) ^ 2
+sqe <- (t(boot_esta) - full_est) ^ 2
 rmsd <- apply(sqe, 1, function(x) sqrt(mean(x)))
 rmsdratio <- rmsd / full_se
-boot_mean <- apply(boot_est, 2, mean)
+boot_mean <- apply(boot_esta, 2, mean)
 boot_meanratio <- boot_mean / full_est
 boot_relbias <- (boot_meanratio / (boot_inclusion / 100) - 1) * 100
-boot_median <- apply(boot_est, 2, median)
-boot_025per <- apply(boot_est, 2, function(x) quantile(x, 0.025))
-boot_975per <- apply(boot_est, 2, function(x) quantile(x, 0.975))
+boot_median <- apply(boot_esta, 2, median)
+boot_025per <- apply(boot_esta, 2, function(x) quantile(x, 0.025))
+boot_975per <- apply(boot_esta, 2, function(x) quantile(x, 0.975))
   
 overview <- round(cbind(full_est, full_se, boot_inclusion, sel_est, sel_se,  
                         rmsdratio, boot_relbias, boot_median, boot_025per, 
